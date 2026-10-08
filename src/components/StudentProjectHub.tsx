@@ -223,9 +223,12 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
             <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl">
               <div className="relative aspect-[4/3] overflow-hidden bg-slate-950">
                 <img
-                  src="/src/assets/images/students_college_project_1791390871391.jpg"
+                  src="/images/students_college_project.jpg"
                   alt="College engineering students discussing project software architecture"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/students_college_project_1791390871391.jpg';
+                  }}
                   className="h-full w-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />

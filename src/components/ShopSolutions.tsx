@@ -245,9 +245,12 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
               <div className="lg:col-span-6">
                 <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-xl">
                   <img
-                    src="/src/assets/images/jewellery_retail_app_1791390860373.jpg"
+                    src="/images/jewellery_retail_app.jpg"
                     alt="Jewellery showroom digital catalog app demo"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/jewellery_retail_app_1791390860373.jpg';
+                    }}
                     className="w-full h-72 object-cover"
                   />
                   <div className="p-4 bg-slate-950 flex items-center justify-between">

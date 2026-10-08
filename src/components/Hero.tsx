@@ -174,9 +174,12 @@ export const Hero: React.FC<HeroProps> = ({
                 {/* Hero Team Photography */}
                 <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
                   <img
-                    src="/src/assets/images/hero_tech_team_1791390846178.jpg"
+                    src="/images/hero_tech_team.jpg"
                     alt="A3T Solutions team of 4 engineers collaborating on custom web and app solutions"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/hero_tech_team_1791390846178.jpg';
+                    }}
                     className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />

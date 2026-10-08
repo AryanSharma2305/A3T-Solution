@@ -1,0 +1,55 @@
+<svg width="200" height="180" viewBox="0 0 200 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldBevel1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF3B0" />
+      <stop offset="30%" stop-color="#E5B242" />
+      <stop offset="65%" stop-color="#BA8621" />
+      <stop offset="100%" stop-color="#8A5A0A" />
+    </linearGradient>
+    <linearGradient id="goldBevel2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082" />
+      <stop offset="45%" stop-color="#D4A017" />
+      <stop offset="85%" stop-color="#996515" />
+      <stop offset="100%" stop-color="#5E3802" />
+    </linearGradient>
+    <linearGradient id="navyFacet1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1E3354" />
+      <stop offset="50%" stop-color="#102038" />
+      <stop offset="100%" stop-color="#08101E" />
+    </linearGradient>
+    <linearGradient id="navyFacet2" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#25426C" />
+      <stop offset="60%" stop-color="#142642" />
+      <stop offset="100%" stop-color="#0B1526" />
+    </linearGradient>
+    <linearGradient id="tGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#BA8621" />
+      <stop offset="35%" stop-color="#FFE898" />
+      <stop offset="70%" stop-color="#E5B242" />
+      <stop offset="100%" stop-color="#8A5A0A" />
+    </linearGradient>
+  </defs>
+  <g>
+    <!-- Top Peak Triangle -->
+    <polygon points="100,10 134,70 66,70" fill="url(#goldBevel1)" stroke="url(#goldBevel2)" stroke-width="3.5" />
+    <polygon points="100,24 125,66 75,66" fill="url(#navyFacet1)" />
+    <polygon points="100,38 114,60 86,60" fill="url(#goldBevel2)" />
+    <polygon points="100,43 110,58 90,58" fill="url(#navyFacet2)" />
+    <!-- Left Wing -->
+    <polygon points="65,48 100,106 14,106" fill="url(#goldBevel1)" stroke="url(#goldBevel2)" stroke-width="3.5" />
+    <polygon points="65,60 90,102 32,102" fill="url(#navyFacet1)" />
+    <!-- Right Wing -->
+    <polygon points="135,48 186,106 100,106" fill="url(#goldBevel2)" stroke="url(#goldBevel1)" stroke-width="3.5" />
+    <polygon points="135,60 168,102 110,102" fill="url(#navyFacet2)" />
+    <!-- Central T -->
+    <polygon points="58,90 142,90 138,104 62,104" fill="url(#tGoldGrad)" stroke="url(#goldBevel1)" stroke-width="1.5" />
+    <polygon points="63,92 137,92 135,102 65,102" fill="url(#navyFacet2)" />
+    <polygon points="90,102 110,102 110,140 90,140" fill="url(#tGoldGrad)" stroke="url(#goldBevel2)" stroke-width="1.5" />
+    <polygon points="93,103 107,103 107,138 93,138" fill="url(#navyFacet1)" />
+    <!-- Base -->
+    <polygon points="28,112 85,112 85,126 40,126" fill="url(#goldBevel2)" />
+    <polygon points="33,114 83,114 83,124 44,124" fill="url(#navyFacet1)" />
+    <polygon points="115,112 172,112 160,126 115,126" fill="url(#goldBevel1)" />
+    <polygon points="117,114 167,114 156,124 117,124" fill="url(#navyFacet2)" />
+  </g>
+</svg>
