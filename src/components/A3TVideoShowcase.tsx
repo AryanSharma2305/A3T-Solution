@@ -1,283 +1,582 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Sparkles, Search, CheckCircle2, Volume2, VolumeX, Maximize2 } from 'lucide-react';
-import { A3TLogo } from './A3TLogo';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Play, Search, CheckCircle2, 
+  Volume2, VolumeX, Maximize2, Video, Film, Smartphone,
+  Star, ExternalLink, Phone, MessageSquare, ArrowRight,
+  Layers, Store, GraduationCap, Sparkles
+} from 'lucide-react';
+import { useContact } from '../context/ContactContext';
 
 interface A3TVideoShowcaseProps {
-  onGetQuoteClick?: () => void;
+  onConsultClick?: () => void;
 }
 
 const SEARCH_PRESETS = [
-  "Best tech solutions for Business Growth",
+  "A3T Solutions",
+  "Best digital tech solutions for businesses",
   "Jewellery showroom catalog & billing website",
   "College final year project with complete source code & report",
-  "Medical pharmacy inventory & expiry alert app",
-  "Salon appointment booking web portal",
 ];
 
-export const A3TVideoShowcase: React.FC<A3TVideoShowcaseProps> = ({ onGetQuoteClick }) => {
+export const A3TVideoShowcase: React.FC<A3TVideoShowcaseProps> = () => {
+  const { contactInfo, getPhoneUrl, getWhatsAppUrl } = useContact();
+  const [activeVideoTab, setActiveVideoTab] = useState<'google_search' | '3d_brand' | 'concept_build'>('google_search');
   const [isPlaying, setIsPlaying] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const [activeQueryIndex, setActiveQueryIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState('');
-  const [phase, setPhase] = useState<'typing' | 'loading' | 'revealed'>('typing');
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentQuery = SEARCH_PRESETS[activeQueryIndex];
+  // Google Search Typing Simulator States
+  const [presetIndex, setPresetIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isTypingActive, setIsTypingActive] = useState(true);
+  const [userHasTyped, setUserHasTyped] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Typing & Reveal Lifecycle
+  // Typewriter animation cycle when user is not manually typing
   useEffect(() => {
-    if (!isPlaying) return;
+    if (activeVideoTab !== 'google_search' || userHasTyped) return;
 
+    let timeoutId: NodeJS.Timeout;
+    const targetQuery = SEARCH_PRESETS[presetIndex];
     let charIndex = 0;
-    setDisplayedText('');
-    setPhase('typing');
+    setIsTypingActive(true);
+    setSearchQuery('');
 
-    const typingInterval = setInterval(() => {
-      if (charIndex <= currentQuery.length) {
-        setDisplayedText(currentQuery.slice(0, charIndex));
+    const typeNextChar = () => {
+      if (charIndex <= targetQuery.length) {
+        setSearchQuery(targetQuery.slice(0, charIndex));
         charIndex++;
+        timeoutId = setTimeout(typeNextChar, 50 + Math.random() * 30);
       } else {
-        clearInterval(typingInterval);
-        // Switch to loading spinner
-        setPhase('loading');
-
-        setTimeout(() => {
-          setPhase('revealed');
-          if (soundEnabled) {
-            playChimeSound();
-          }
-
-          // After holding the reveal, transition to next query
-          setTimeout(() => {
-            setActiveQueryIndex((prev) => (prev + 1) % SEARCH_PRESETS.length);
-          }, 3500);
-        }, 1200);
+        setIsTypingActive(false);
+        // Hold on results, then rotate to next preset
+        timeoutId = setTimeout(() => {
+          setPresetIndex((prev) => (prev + 1) % SEARCH_PRESETS.length);
+        }, 5500);
       }
-    }, 45);
+    };
 
-    return () => clearInterval(typingInterval);
-  }, [isPlaying, activeQueryIndex, soundEnabled, currentQuery]);
+    timeoutId = setTimeout(typeNextChar, 600);
 
-  const playChimeSound = () => {
-    try {
-      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.4);
-    } catch {
-      // AudioContext might be restricted until user gesture
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [activeVideoTab, presetIndex, userHasTyped]);
+
+  const handlePlayPause = () => {
+    if (!videoRef.current) return;
+    if (videoRef.current.paused) {
+      videoRef.current.play();
+      setIsPlaying(true);
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
     }
   };
 
-  const handleRestart = () => {
-    setDisplayedText('');
-    setPhase('typing');
-    setIsPlaying(true);
+  const handleToggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    videoRef.current.muted = !videoRef.current.muted;
+    setIsMuted(videoRef.current.muted);
   };
 
-  const toggleFullscreen = () => {
-    if (!playerContainerRef.current) return;
-    if (!isFullscreen) {
-      if (playerContainerRef.current.requestFullscreen) {
-        playerContainerRef.current.requestFullscreen().catch(() => {});
-      }
-      setIsFullscreen(true);
+  const handleFullscreen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!containerRef.current) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-      }
-      setIsFullscreen(false);
+      containerRef.current.requestFullscreen().catch(() => {});
+    }
+  };
+
+  const handleManualSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserHasTyped(true);
+    setIsTypingActive(false);
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSelectPresetChip = (preset: string) => {
+    setUserHasTyped(true);
+    setIsTypingActive(false);
+    setSearchQuery(preset);
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-4xl" ref={playerContainerRef}>
+    <div className="relative mx-auto w-full max-w-4xl" ref={containerRef}>
       {/* Decorative ambient gradient backdrop */}
-      <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-amber-500/20 via-blue-500/10 to-amber-400/20 blur-xl opacity-75" />
+      <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-sky-400/20 blur-xl opacity-75" />
 
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl">
-        {/* Top Video Header Bar */}
-        <div className="flex flex-wrap items-center justify-between border-b border-slate-800 bg-slate-950/80 px-4 py-3 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-rose-500/80" />
-              <div className="h-3 w-3 rounded-full bg-amber-500/80" />
-              <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
-            </div>
-            <span className="text-xs font-semibold text-slate-300">
-              A3T Solutions Promo · Business Search Video
-            </span>
+      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl">
+        {/* Top Video Header Bar & Tab Switcher (no bulky controls, no pause/loop tags) */}
+        <div className="flex flex-col sm:flex-row items-center justify-between border-b border-slate-800 bg-slate-950/90 px-4 py-3 backdrop-blur-md gap-3">
+          {/* Tab Selection */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 w-full sm:w-auto overflow-x-auto justify-center">
+            {/* Google Search Experience Tab */}
+            <button
+              onClick={() => {
+                setActiveVideoTab('google_search');
+                setUserHasTyped(false);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeVideoTab === 'google_search'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+              <span>Google Search Video</span>
+            </button>
+
+            {/* 3D Brand Film Tab */}
+            <button
+              onClick={() => {
+                setActiveVideoTab('3d_brand');
+                setIsPlaying(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeVideoTab === '3d_brand'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Film className="h-3.5 w-3.5" />
+              <span>3D Brand Film</span>
+            </button>
+
+            {/* Concept to Reality Tab */}
+            <button
+              onClick={() => {
+                setActiveVideoTab('concept_build');
+                setIsPlaying(true);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                activeVideoTab === 'concept_build'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Video className="h-3.5 w-3.5" />
+              <span>Concept to Reality</span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300 hover:text-white transition-colors"
-              title={soundEnabled ? 'Mute Audio' : 'Enable Audio'}
-            >
-              {soundEnabled ? <Volume2 className="h-3.5 w-3.5 text-amber-400" /> : <VolumeX className="h-3.5 w-3.5" />}
-              <span className="hidden sm:inline">{soundEnabled ? 'Sound ON' : 'Sound OFF'}</span>
-            </button>
-
-            <button
-              onClick={handleRestart}
-              className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300 hover:text-white transition-colors"
-              title="Restart Video Simulation"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Replay</span>
-            </button>
-
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-amber-400 transition-colors"
-            >
-              {isPlaying ? <Pause className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current" />}
-              <span>{isPlaying ? 'Pause' : 'Play'}</span>
-            </button>
-
-            <button
-              onClick={toggleFullscreen}
-              className="rounded-lg border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:text-white transition-colors"
-              title="Fullscreen"
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-            </button>
+          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span>Interactive Media Showcase</span>
           </div>
         </div>
 
-        {/* Video Canvas Stage: Simulating the authentic smartphone Google Search animation */}
-        <div className="relative flex flex-col items-center justify-center p-6 sm:p-10 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 min-h-[460px]">
-          {/* Subtle grid background */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b10_1px,transparent_1px),linear-gradient(to_bottom,#1e293b10_1px,transparent_1px)] bg-[size:2rem_2rem] pointer-events-none" />
-
-          {/* Smartphone Mockup matching uploaded video */}
-          <div className="relative w-full max-w-[340px] sm:max-w-[380px] rounded-[38px] border-4 border-slate-800 bg-white p-3 shadow-2xl transition-all duration-300">
-            {/* Screen Notch / Top Bar */}
-            <div className="flex items-center justify-between px-4 pt-1 pb-3 text-slate-900">
-              <div className="flex items-center gap-1.5 text-[11px] font-bold">
-                <span>12:01</span>
-                <span className="inline-block h-2 w-2 rounded-full bg-blue-600" />
-              </div>
-              <div className="h-4 w-20 rounded-full bg-slate-900/10" />
-              <div className="flex items-center gap-1 text-[11px]">
-                <div className="h-2.5 w-4 rounded-sm border border-slate-800 flex items-center p-0.5">
-                  <div className="h-full w-2.5 bg-slate-800 rounded-2xs" />
-                </div>
-              </div>
-            </div>
-
-            {/* Simulated Google Search View */}
-            <div className="flex flex-col items-center pt-2 pb-6 px-3 min-h-[400px]">
-              {/* Google Wordmark */}
-              <div className="mb-4 text-3xl font-bold tracking-tight">
-                <span className="text-blue-500">G</span>
-                <span className="text-red-500">o</span>
-                <span className="text-amber-500">o</span>
-                <span className="text-blue-500">g</span>
-                <span className="text-green-500">l</span>
-                <span className="text-red-500">e</span>
-              </div>
-
-              {/* Search Pill Input Bar */}
-              <div className="relative mb-6 flex w-full items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 shadow-sm">
-                <Search className="h-4 w-4 text-slate-400 shrink-0" />
-                <div className="flex-1 text-xs text-slate-800 truncate font-medium">
-                  {displayedText}
-                  {phase === 'typing' && (
-                    <span className="inline-block h-3.5 w-0.5 bg-blue-600 align-middle animate-pulse ml-0.5" />
-                  )}
-                </div>
-                {phase === 'revealed' && (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 animate-scale-in" />
-                )}
-              </div>
-
-              {/* Main Display Container */}
-              <div className="relative flex flex-1 w-full flex-col items-center justify-center rounded-2xl bg-slate-50 border border-slate-200/80 p-5 overflow-hidden transition-all duration-500">
-                {phase === 'typing' && (
-                  <div className="flex flex-col items-center justify-center text-center text-slate-400 py-10">
-                    <p className="text-xs font-medium">Searching for the best solution...</p>
+        {/* Video Player & Google Simulation Stage */}
+        <div className="relative flex items-center justify-center bg-black min-h-[460px] sm:min-h-[520px]">
+          {/* TAB 1: GOOGLE SEARCH VIDEO & SIMULATION */}
+          {activeVideoTab === 'google_search' && (
+            <div className="relative w-full p-4 sm:p-7 bg-slate-950 flex flex-col items-center">
+              {/* Smartphone Frame with Authentic Google Search */}
+              <div className="w-full max-w-xl rounded-[32px] sm:rounded-[36px] border-4 border-slate-800 bg-white shadow-2xl overflow-hidden text-left transition-all">
+                {/* Phone Status Bar */}
+                <div className="flex items-center justify-between px-5 pt-2.5 pb-1 bg-white text-slate-900 border-b border-slate-100">
+                  <div className="flex items-center gap-1.5 text-xs font-bold">
+                    <span>12:01</span>
+                    <span className="inline-block h-2 w-2 rounded-full bg-cyan-600" />
                   </div>
-                )}
-
-                {phase === 'loading' && (
-                  <div className="flex flex-col items-center justify-center py-10 animate-fade-in">
-                    {/* Multi-dot Spinner matching uploaded video */}
-                    <div className="h-10 w-10 rounded-full border-3 border-slate-200 border-t-amber-500 border-r-blue-600 animate-spin" />
-                    <span className="mt-4 text-xs font-semibold text-slate-600">Matching top providers...</span>
+                  {/* Notch */}
+                  <div className="h-3.5 w-24 rounded-full bg-slate-200" />
+                  <div className="flex items-center gap-1 text-[11px] font-mono text-slate-600 font-semibold">
+                    <span>5G</span>
+                    <span className="text-[10px]">100%</span>
                   </div>
-                )}
+                </div>
 
-                {phase === 'revealed' && (
-                  <div className="flex flex-col items-center justify-center text-center animate-fade-in w-full py-4">
-                    {/* The Reveal of A3T Solutions */}
-                    <div className="relative mb-3 flex items-center justify-center">
-                      <div className="absolute -inset-4 bg-amber-400/20 rounded-full blur-xl" />
-                      <A3TLogo size="lg" lightText={false} />
+                {/* Google Search Bar Header */}
+                <div className="p-3 sm:p-4 bg-white border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    {/* Google Multicolor Logo */}
+                    <div className="flex items-center font-bold text-base sm:text-lg tracking-tight select-none">
+                      <span className="text-[#4285F4]">G</span>
+                      <span className="text-[#EA4335]">o</span>
+                      <span className="text-[#FBBC05]">o</span>
+                      <span className="text-[#4285F4]">g</span>
+                      <span className="text-[#34A853]">l</span>
+                      <span className="text-[#EA4335]">e</span>
                     </div>
 
-                    <div className="mt-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-semibold text-emerald-700">
-                      #1 Recommended Tech Partner
+                    {/* Interactive Google Search Bar */}
+                    <div className="relative flex-1 flex items-center rounded-full border border-slate-300 bg-slate-50 px-3.5 py-1.5 sm:py-2 shadow-inner focus-within:border-cyan-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-cyan-500/20 transition-all">
+                      <Search className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleManualSearchInput}
+                        placeholder="Type to search..."
+                        className="w-full bg-transparent text-xs sm:text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+                      />
+                      {isTypingActive && (
+                        <span className="inline-block w-1.5 h-4 bg-cyan-500 animate-pulse ml-0.5" />
+                      )}
+                      {searchQuery && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery('');
+                            setUserHasTyped(true);
+                            inputRef.current?.focus();
+                          }}
+                          className="text-xs text-slate-400 hover:text-slate-600 px-1 font-bold"
+                          title="Clear search"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Google Filter Tabs */}
+                  <div className="flex items-center gap-4 mt-3 text-xs text-slate-600 font-medium border-b border-slate-100 pb-1">
+                    <span className="text-[#1a73e8] font-bold border-b-2 border-[#1a73e8] pb-1 cursor-pointer">
+                      All
+                    </span>
+                    <span className="hover:text-slate-900 cursor-pointer">Images</span>
+                    <span className="hover:text-slate-900 cursor-pointer">Videos</span>
+                    <span className="hover:text-slate-900 cursor-pointer">Maps</span>
+                    <span className="hover:text-slate-900 cursor-pointer">News</span>
+                  </div>
+                </div>
+
+                {/* Google Search Hits / Results Section */}
+                <div className="p-3 sm:p-5 bg-slate-50 max-h-[380px] overflow-y-auto space-y-3.5">
+                  <div className="text-[11px] text-slate-500">
+                    About 2,450,000 results (0.28 seconds)
+                  </div>
+
+                  {/* Primary Google Result: A3T SOLUTIONS with Logo & All Sitelinks */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+                    {/* Top Result Domain & Verified Logo */}
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <div className="h-7 w-7 rounded-full bg-slate-950 p-1 flex items-center justify-center border border-slate-300 flex-shrink-0 shadow-sm">
+                        <img
+                          src="/logo.png"
+                          alt="A3T Solutions Official Logo"
+                          className="h-full w-full object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/logo.svg';
+                          }}
+                        />
+                      </div>
+                      <div className="truncate">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                            A3T SOLUTIONS
+                          </span>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-blue-500 fill-blue-500/20" />
+                          <span className="text-[10px] bg-blue-50 text-blue-600 font-semibold px-1.5 py-0.2 rounded">
+                            Official
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-mono truncate">
+                          https://a3tsolutions.com
+                        </div>
+                      </div>
                     </div>
 
-                    <p className="mt-3 text-xs text-slate-600 leading-relaxed max-w-[260px]">
-                      Websites, Mobile Apps, and Academic Projects tailored by 4 dedicated engineers.
+                    {/* Main Title */}
+                    <h3 className="text-base sm:text-lg font-bold text-[#1a0dab] hover:underline cursor-pointer leading-tight">
+                      A3T Solutions: Best Digital Tech Solutions for Businesses &amp; Students
+                    </h3>
+
+                    {/* Meta Description */}
+                    <p className="mt-1 text-xs text-slate-700 leading-relaxed">
+                      Turnkey Engineering with rapid 3–7 day delivery. Custom web &amp; mobile architectures for retail stores (jewellery, medical, salons) and university collegiate capstone engineering projects with verified code.
                     </p>
 
-                    <button
-                      onClick={onGetQuoteClick}
-                      className="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-slate-800 transition-colors"
-                    >
-                      Connect with A3T Solutions →
-                    </button>
+                    {/* All Sitelinks ("All Links / Hits") */}
+                    <div className="mt-3.5 pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {/* Link 1: Shop & Retail */}
+                      <button
+                        onClick={() => scrollToSection('services-shop')}
+                        className="text-left rounded-xl p-2 bg-slate-50 hover:bg-cyan-50 border border-slate-100 hover:border-cyan-200 transition-colors group"
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1a0dab] group-hover:text-cyan-700">
+                          <Store className="h-3.5 w-3.5 text-cyan-600" />
+                          <span>Shop Solutions &amp; Billing</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          Jewellery catalogs, pharmacy &amp; salon billing systems.
+                        </p>
+                      </button>
+
+                      {/* Link 2: Student Projects */}
+                      <button
+                        onClick={() => scrollToSection('services-student')}
+                        className="text-left rounded-xl p-2 bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition-colors group"
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1a0dab] group-hover:text-blue-700">
+                          <GraduationCap className="h-3.5 w-3.5 text-blue-600" />
+                          <span>Student Capstone Hub</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          Source code, full project report &amp; viva presentation.
+                        </p>
+                      </button>
+
+                      {/* Link 3: 3D Showcase */}
+                      <button
+                        onClick={() => scrollToSection('solutions-carousel')}
+                        className="text-left rounded-xl p-2 bg-slate-50 hover:bg-sky-50 border border-slate-100 hover:border-sky-200 transition-colors group"
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1a0dab] group-hover:text-sky-700">
+                          <Layers className="h-3.5 w-3.5 text-sky-600" />
+                          <span>3D Architecture Carousel</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          Sliced 3D perspective of live client architectures.
+                        </p>
+                      </button>
+
+                      {/* Link 4: Direct WhatsApp Consultation */}
+                      <a
+                        href={getWhatsAppUrl("Hi A3T Solutions! I searched your services on Google and want to consult on a project.")}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-left rounded-xl p-2 bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 transition-colors group block"
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 group-hover:text-emerald-800">
+                          <MessageSquare className="h-3.5 w-3.5 text-emerald-600" />
+                          <span>Direct WhatsApp Consult</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          Instant chat with core founding engineers.
+                        </p>
+                      </a>
+                    </div>
                   </div>
-                )}
+
+                  {/* Google Knowledge Panel / Business Snapshot */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src="/logo.png"
+                          alt="A3T Logo"
+                          className="h-6 w-6 object-contain"
+                        />
+                        <div>
+                          <div className="text-xs font-bold text-slate-900">A3T Solutions</div>
+                          <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold">
+                            <span>5.0</span>
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                              ))}
+                            </div>
+                            <span className="text-slate-500 font-normal">(148+ Google reviews)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={getPhoneUrl()}
+                          className="flex items-center gap-1 rounded-lg bg-cyan-50 px-2.5 py-1 text-[11px] font-bold text-cyan-700 hover:bg-cyan-100 border border-cyan-200 transition-colors"
+                        >
+                          <Phone className="h-3 w-3" />
+                          <span>Call</span>
+                        </a>
+                        <a
+                          href={getWhatsAppUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          <span>Chat</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Preset Search Chips (at bottom of phone) */}
+                <div className="p-2.5 bg-slate-100 border-t border-slate-200 flex items-center gap-1.5 overflow-x-auto text-[11px]">
+                  <span className="text-slate-500 font-medium whitespace-nowrap pl-1">
+                    Try queries:
+                  </span>
+                  {SEARCH_PRESETS.map((p, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelectPresetChip(p)}
+                      className={`whitespace-nowrap px-2.5 py-1 rounded-full font-medium transition-all ${
+                        searchQuery === p
+                          ? 'bg-cyan-600 text-white font-bold shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+          )}
 
-            {/* Phone Home Bar */}
-            <div className="flex justify-center pb-2">
-              <div className="h-1 w-28 rounded-full bg-slate-300" />
+          {/* TAB 2: 3D BRAND VIDEO */}
+          {activeVideoTab === '3d_brand' && (
+            <div 
+              onClick={handlePlayPause}
+              className="relative w-full h-full flex items-center justify-center cursor-pointer group"
+            >
+              <video
+                ref={videoRef}
+                key="video_brand"
+                src="/assets/aistudio/WhatsApp_Video_2026-10-19_at_17.04.05_1353c049.mp4"
+                autoPlay
+                loop
+                playsInline
+                muted={isMuted}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                className="w-full h-full max-h-[520px] object-contain"
+              />
+
+              {/* OVERLAY: Clean Branded Watermark with the new 3D Logo */}
+              <div className="absolute top-4 right-4 pointer-events-none z-20 flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-slate-950/80 px-3.5 py-1.5 backdrop-blur-md shadow-xl animate-fade-in">
+                <img
+                  src="/logo.png"
+                  alt="A3T Logo Watermark"
+                  className="h-6 w-6 object-contain drop-shadow-[0_0_8px_rgba(0,210,255,0.6)]"
+                />
+                <span className="text-[11px] font-bold tracking-wider text-white uppercase font-sans">
+                  A3T SOLUTIONS
+                </span>
+              </div>
+
+              {/* Floating Minimal In-Video Control Pills (Bottom Right) */}
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 opacity-90 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={handleToggleMute}
+                  className="flex items-center gap-1 rounded-xl border border-slate-700/80 bg-slate-950/80 px-2.5 py-1.5 text-xs text-slate-200 hover:text-cyan-400 backdrop-blur-md transition-all shadow-lg"
+                  title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
+                >
+                  {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5 text-cyan-400" />}
+                  <span className="text-[11px] font-medium">{isMuted ? 'Muted' : 'Sound ON'}</span>
+                </button>
+
+                <button
+                  onClick={handleFullscreen}
+                  className="rounded-xl border border-slate-700/80 bg-slate-950/80 p-2 text-slate-300 hover:text-white backdrop-blur-md transition-all shadow-lg"
+                  title="Fullscreen"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Center Play/Pause Indicator on hover/pause */}
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none z-10">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/90 text-slate-950 shadow-2xl backdrop-blur-md">
+                    <Play className="h-8 w-8 ml-1 fill-current" />
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom Scrim & Tagline */}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent p-5 text-left pointer-events-none pr-32">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-cyan-500/20 border border-cyan-500/40 px-2.5 py-0.5 text-[10px] font-bold text-cyan-300 uppercase tracking-widest mb-1.5">
+                  Official 3D Production Motion
+                </div>
+                <h4 className="text-base sm:text-lg font-bold text-white">
+                  A3T Solutions: You Want. We Build.
+                </h4>
+                <p className="text-xs text-slate-300">
+                  Your Business. Your Website. Built Around Your Needs.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Bottom Interactive Query Selector Pills */}
-        <div className="border-t border-slate-800 bg-slate-950/70 p-4">
-          <div className="flex items-center gap-2 mb-2 text-xs font-medium text-slate-400">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-            <span>Try searching specific shop or student queries:</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {SEARCH_PRESETS.map((query, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setActiveQueryIndex(index);
-                  setDisplayedText('');
-                  setPhase('typing');
-                  setIsPlaying(true);
-                }}
-                className={`text-xs px-3 py-1.5 rounded-lg border transition-all text-left truncate max-w-full sm:max-w-[260px] ${
-                  activeQueryIndex === index
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-semibold shadow-sm'
-                    : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
-                }`}
-              >
-                {query}
-              </button>
-            ))}
-          </div>
+          {/* TAB 3: CONCEPT TO REALITY VIDEO */}
+          {activeVideoTab === 'concept_build' && (
+            <div 
+              onClick={handlePlayPause}
+              className="relative w-full h-full flex items-center justify-center cursor-pointer group"
+            >
+              <video
+                ref={videoRef}
+                key="video_concept"
+                src="/assets/aistudio/WhatsApp_Video_2026-10-19_at_16.57.35_d9e6be15.mp4"
+                autoPlay
+                loop
+                playsInline
+                muted={isMuted}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                className="w-full h-full max-h-[520px] object-contain"
+              />
+
+              {/* OVERLAY: Clean Branded Watermark with the new 3D Logo */}
+              <div className="absolute top-4 right-4 pointer-events-none z-20 flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-slate-950/80 px-3.5 py-1.5 backdrop-blur-md shadow-xl animate-fade-in">
+                <img
+                  src="/logo.png"
+                  alt="A3T Logo Watermark"
+                  className="h-6 w-6 object-contain drop-shadow-[0_0_8px_rgba(0,210,255,0.6)]"
+                />
+                <span className="text-[11px] font-bold tracking-wider text-white uppercase font-sans">
+                  A3T SOLUTIONS
+                </span>
+              </div>
+
+              {/* Floating Minimal In-Video Control Pills (Bottom Right) */}
+              <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2 opacity-90 group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={handleToggleMute}
+                  className="flex items-center gap-1 rounded-xl border border-slate-700/80 bg-slate-950/80 px-2.5 py-1.5 text-xs text-slate-200 hover:text-cyan-400 backdrop-blur-md transition-all shadow-lg"
+                  title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
+                >
+                  {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5 text-cyan-400" />}
+                  <span className="text-[11px] font-medium">{isMuted ? 'Muted' : 'Sound ON'}</span>
+                </button>
+
+                <button
+                  onClick={handleFullscreen}
+                  className="rounded-xl border border-slate-700/80 bg-slate-950/80 p-2 text-slate-300 hover:text-white backdrop-blur-md transition-all shadow-lg"
+                  title="Fullscreen"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Center Play/Pause Indicator on hover/pause */}
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none z-10">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/90 text-slate-950 shadow-2xl backdrop-blur-md">
+                    <Play className="h-8 w-8 ml-1 fill-current" />
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom Scrim & Tagline */}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent p-5 text-left pointer-events-none pr-32">
+                <div className="inline-flex items-center gap-2 rounded-lg bg-blue-500/20 border border-blue-500/40 px-2.5 py-0.5 text-[10px] font-bold text-blue-300 uppercase tracking-widest mb-1.5">
+                  Concept Transformation
+                </div>
+                <h4 className="text-base sm:text-lg font-bold text-white">
+                  Have an Idea? Let&apos;s Build It.
+                </h4>
+                <p className="text-xs text-slate-300">
+                  From rough concept straight to live website and mobile experience.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

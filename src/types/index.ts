@@ -25,6 +25,17 @@ export interface ContactInfo {
   location: string;
 }
 
+export interface LoginAuditRecord {
+  id: string;
+  timestamp: string;
+  role: 'user' | 'admin';
+  identifier: string;
+  clientName?: string;
+  ip?: string;
+  userAgent?: string;
+  action: string;
+}
+
 export interface CustomerAccount {
   id: string;
   name: string;
@@ -36,39 +47,15 @@ export interface CustomerAccount {
   registeredAt: string;
   lastLoginAt: string;
   notes?: string;
-  budgetEstimated?: number;
   status: 'New Inquiry' | 'In Progress' | 'Delivered' | 'Completed';
   progressPercentage: number;
 }
 
-export interface TeamMember {
-  id: string;
+export interface CoFounder {
   name: string;
-  role: string;
-  specialty: string;
-  description: string;
-  skills: string[];
-}
-
-export interface ProjectMilestone {
+  letter: string;
   title: string;
-  status: 'completed' | 'in_progress' | 'pending';
-  date: string;
-}
-
-export interface ClientProject {
-  id: string;
-  clientName: string;
-  projectType: 'shop' | 'student';
-  title: string;
-  status: 'In Progress' | 'Under Review' | 'Completed' | 'Delivered';
-  progressPercentage: number;
-  startDate: string;
-  expectedDelivery: string;
-  milestones: ProjectMilestone[];
-  deliverables: {
-    name: string;
-    type: string;
-    size: string;
-  }[];
+  leadDomain: string;
+  bio: string;
+  capabilities: string[];
 }

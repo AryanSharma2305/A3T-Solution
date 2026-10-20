@@ -1,0 +1,126 @@
+{
+  "contactInfo": {
+    "phone": "+91 8976121102",
+    "whatsapp": "+918976121102",
+    "instagram": "a3tsolutions2305",
+    "youtube": "https://www.youtube.com/channel/UCf6bgR4RtCCTNOJKL7-3VYQ",
+    "email": "aryanmsharma23@gmail.com",
+    "location": "Pan-India Delivery & Global Remote Systems"
+  },
+  "logins": [
+    {
+      "id": "log_1792483064775",
+      "timestamp": "2026-10-20T07:57:44.775Z",
+      "role": "user",
+      "identifier": "royaljewels@gmail.com",
+      "clientName": "Royal Heritage Jewellers",
+      "ip": "127.0.0.1",
+      "userAgent": "curl/7.88.1",
+      "action": "User updated personal contact number from +91 98200 99999 to +91 98200 12345"
+    },
+    {
+      "id": "log_1792483038947",
+      "timestamp": "2026-10-20T07:57:18.947Z",
+      "role": "user",
+      "identifier": "royaljewels@gmail.com",
+      "clientName": "Royal Heritage Jewellers",
+      "ip": "127.0.0.1",
+      "userAgent": "curl/7.88.1",
+      "action": "User updated personal contact number from +91 98200 12345 to +91 98200 99999"
+    },
+    {
+      "id": "log_1792483012037",
+      "timestamp": "2026-10-20T07:56:52.037Z",
+      "role": "user",
+      "identifier": "+91 98200 12345",
+      "clientName": "Royal Heritage Jewellers",
+      "ip": "127.0.0.1",
+      "userAgent": "curl/7.88.1",
+      "action": "Client Logged into Project Tracker (A3T-CLIENT-101: E-Commerce Showroom & Daily Gold Rate Live Ticker Website)"
+    },
+    {
+      "id": "log_1792482974978",
+      "timestamp": "2026-10-20T07:56:14.978Z",
+      "role": "admin",
+      "identifier": "Admin Security PIN Auth",
+      "clientName": "Founding Team Administrator",
+      "ip": "127.0.0.1",
+      "userAgent": "curl/7.88.1",
+      "action": "Admin Logged into Management & Database Console"
+    },
+    {
+      "id": "log_seed_1",
+      "timestamp": "2026-10-18T10:14:22.000Z",
+      "role": "admin",
+      "identifier": "Admin Console (PIN Auth)",
+      "clientName": "Founding Team Administrator",
+      "ip": "127.0.0.1",
+      "userAgent": "Mozilla/5.0 (Admin Secure Session)",
+      "action": "Admin Verified System Config"
+    },
+    {
+      "id": "log_seed_2",
+      "timestamp": "2026-10-18T14:30:11.000Z",
+      "role": "user",
+      "identifier": "+91 98200 12345",
+      "clientName": "Royal Heritage Jewellers",
+      "ip": "103.21.124.5",
+      "userAgent": "Chrome / Android Client Portal",
+      "action": "Customer Progress Check & Milestone Review"
+    },
+    {
+      "id": "log_seed_3",
+      "timestamp": "2026-10-19T09:45:00.000Z",
+      "role": "user",
+      "identifier": "+91 97654 32109",
+      "clientName": "Rahul Sharma (B.Tech AI)",
+      "ip": "115.112.44.12",
+      "userAgent": "Firefox / Desktop Windows",
+      "action": "Deliverables Code Download & IEEE Report Access"
+    }
+  ],
+  "customers": [
+    {
+      "id": "A3T-CLIENT-101",
+      "name": "Royal Heritage Jewellers",
+      "email": "royaljewels@gmail.com",
+      "phone": "+91 98200 12345",
+      "role": "shop",
+      "businessOrCollege": "Royal Gold & Diamond Showroom",
+      "projectTitle": "E-Commerce Showroom & Daily Gold Rate Live Ticker Website",
+      "registeredAt": "2026-10-06 14:30",
+      "lastLoginAt": "20 Oct 2026, 7:56 am",
+      "notes": "Needs daily 22k/24k gold ticker and catalog with WhatsApp order booking.",
+      "status": "In Progress",
+      "progressPercentage": 80
+    },
+    {
+      "id": "A3T-CLIENT-102",
+      "name": "Rahul Sharma",
+      "email": "rahul.btech26@gmail.com",
+      "phone": "+91 97654 32109",
+      "role": "student",
+      "businessOrCollege": "B.Tech CSE - Final Year",
+      "projectTitle": "Driver Drowsiness & Yawn Detection System using OpenCV & CNN",
+      "registeredAt": "2026-10-05 11:20",
+      "lastLoginAt": "2026-10-19 09:45",
+      "notes": "Complete source code + 85-page IEEE report + PPT + 1-on-1 viva coaching defense prep.",
+      "status": "Completed",
+      "progressPercentage": 100
+    },
+    {
+      "id": "A3T-CLIENT-103",
+      "name": "Sanjeevani Chemist & Care",
+      "email": "care@sanjeevanimedical.in",
+      "phone": "+91 91234 56780",
+      "role": "shop",
+      "businessOrCollege": "Medical Store & Pharmacy",
+      "projectTitle": "Medicine Inventory, Expiry Alert & Barcode Billing POS Web App",
+      "registeredAt": "2026-10-07 09:10",
+      "lastLoginAt": "2026-10-17 16:00",
+      "notes": "Wants 60-day expiry warning alerts and customer prescription photo upload.",
+      "status": "In Progress",
+      "progressPercentage": 55
+    }
+  ]
+}

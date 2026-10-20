@@ -65,7 +65,7 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
     },
     {
       icon: FileText,
-      title: 'Complete IEEE Project Report',
+      title: 'Complete University Project Report',
       description: '60–100+ pages structured according to your university format, including UML diagrams, DFDs, ERDs, and test cases.',
     },
     {
@@ -86,13 +86,16 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div className="max-w-2xl text-left">
-            <div className="flex items-center gap-2 text-xs font-semibold text-blue-400 mb-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 mb-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
               <span>ACADEMIC PROJECT SUITE</span>
               <span aria-hidden="true">·</span>
               <span className="text-slate-400 font-normal">For B.Tech · BCA · MCA · Diploma · BSc/MSc</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2
+              className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
               College Projects Made Easy. From Code to Viva Defense.
             </h2>
             <p className="mt-3 text-base text-slate-300">
@@ -113,7 +116,7 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
 
             <button
               onClick={() => onOpenProjectRequest('academic')}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-blue-500 transition-colors shadow-md shadow-blue-500/10"
+              className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors shadow-md shadow-cyan-500/10"
             >
               <span>Submit Project Requirements</span>
               <ArrowRight className="h-4 w-4" />
@@ -128,9 +131,9 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
             return (
               <div
                 key={index}
-                className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 hover:border-blue-500/40 hover:bg-slate-900 transition-all duration-300"
+                className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 hover:border-cyan-500/40 hover:bg-slate-900 transition-all duration-300"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 mb-4">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-sm font-bold text-white mb-1.5">{item.title}</h3>
@@ -140,7 +143,7 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
           })}
         </div>
 
-        {/* Deep Dive Bento: Domains & Interactive Topic Selector + Photo */}
+        {/* Deep Dive Bento: Domains & Interactive Topic Selector */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Interactive Domain & Topic Selector */}
           <div className="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 sm:p-8 backdrop-blur-xl text-left">
@@ -162,7 +165,7 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
                   onClick={() => setSelectedDomain(d.id)}
                   className={`rounded-xl p-2.5 text-left border transition-all text-xs font-semibold ${
                     selectedDomain === d.id
-                      ? 'border-blue-500 bg-blue-600/15 text-blue-300 shadow-sm'
+                      ? 'border-cyan-500 bg-cyan-500/15 text-cyan-300 shadow-sm'
                       : 'border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:border-slate-700'
                   }`}
                 >
@@ -179,7 +182,7 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
                 <div key={d.id} className="space-y-3">
                   <div className="text-xs font-semibold text-slate-300 flex items-center justify-between">
                     <span>Recommended Project Topics ({d.title}):</span>
-                    <span className="text-[11px] text-amber-400 font-mono">Guaranteed Unique Implementations</span>
+                    <span className="text-[11px] text-cyan-400 font-mono">Guaranteed Unique Implementations</span>
                   </div>
 
                   <div className="space-y-2.5">
@@ -189,16 +192,16 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
                         className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950 p-3.5 hover:border-slate-700 transition-all"
                       >
                         <div className="flex items-start gap-2.5">
-                          <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
                           <div>
                             <span className="text-xs font-medium text-slate-200 block">{topic}</span>
-                            <span className="text-[10px] text-slate-500">Includes: Source Code · IEEE Report · PPT · Viva Prep</span>
+                            <span className="text-[10px] text-slate-500">Includes: Source Code · Project Report · PPT · Viva Prep</span>
                           </div>
                         </div>
 
                         <button
                           onClick={() => onOpenProjectRequest(topic)}
-                          className="shrink-0 rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-blue-300 hover:bg-blue-600 hover:text-white transition-all whitespace-nowrap"
+                          className="shrink-0 rounded-lg bg-slate-900 border border-slate-700 px-3 py-1.5 text-[11px] font-semibold text-cyan-300 hover:bg-cyan-500 hover:text-slate-950 transition-all whitespace-nowrap"
                         >
                           Book Topic →
                         </button>
@@ -209,8 +212,8 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
               ))}
 
             {/* Custom Syllabus Note */}
-            <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4 flex items-start gap-3">
-              <Sparkles className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+            <div className="mt-6 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-4 flex items-start gap-3">
+              <Sparkles className="h-5 w-5 text-cyan-400 shrink-0 mt-0.5" />
               <div className="text-xs text-slate-300">
                 <span className="font-bold text-white block mb-0.5">Have your own teacher-assigned topic or problem statement?</span>
                 We can build your exact custom project specification with custom algorithms, database schemas, and college-specific documentation formats.
@@ -233,7 +236,7 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent" />
                 <div className="absolute bottom-3 left-4 right-4">
-                  <div className="text-xs font-semibold text-blue-300">Fast 3 to 5 Days Delivery</div>
+                  <div className="text-xs font-semibold text-cyan-300">Fast 3 to 5 Days Delivery</div>
                   <div className="text-[11px] text-slate-400">Emergency 48-hour delivery available for approaching deadlines</div>
                 </div>
               </div>
@@ -246,28 +249,28 @@ export const StudentProjectHub: React.FC<StudentProjectHubProps> = ({ onOpenProj
 
                 <div className="space-y-2 text-xs text-slate-300">
                   <div className="flex items-start gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold shrink-0">1</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 text-[11px] font-bold shrink-0">1</span>
                     <span>Send us your college requirements or syllabus problem statement.</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold shrink-0">2</span>
-                    <span>We assign 1-2 dedicated engineers from our 4-person team to start building.</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 text-[11px] font-bold shrink-0">2</span>
+                    <span>Dedicated software engineers from our team are assigned to start building.</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold shrink-0">3</span>
-                    <span>We do a live screen-share demo of the working project for your approval.</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 text-[11px] font-bold shrink-0">3</span>
+                    <span>We conduct a live screen-share demo of the working project for your approval.</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 text-[11px] font-bold shrink-0">4</span>
-                    <span>Receive complete code zip, report PDF/Word, PPT + 1-on-1 viva session!</span>
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-400 text-[11px] font-bold shrink-0">4</span>
+                    <span>Receive complete code zip, report PDF/Word, PPT + 1-on-1 viva coaching session!</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => onOpenProjectRequest()}
-                  className="mt-3 w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white hover:bg-blue-500 transition-colors"
+                  className="mt-3 w-full rounded-xl bg-cyan-400 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors"
                 >
-                  Request Student Project Quote
+                  Consult on Academic Project
                 </button>
               </div>
             </div>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { 
-  X, LogIn, Lock, Mail, Store, GraduationCap, CheckCircle2, Clock, 
-  Download, AlertCircle, MessageSquare, ChevronRight, FileText, Code2, 
-  ShieldCheck, RefreshCw, Phone, Users, Trash2, Edit3, ArrowRight, Sparkles, UserPlus 
+  X, LogIn, Lock, Mail, Store, GraduationCap, CheckCircle2, 
+  Download, AlertCircle, MessageSquare, ChevronRight, Code2, 
+  ShieldCheck, RefreshCw, Phone, Users, Trash2, Edit3, ArrowRight, 
+  Sparkles, UserPlus, Database, Search, Shield, Settings2, Save, FileSpreadsheet
 } from 'lucide-react';
 import { useContact } from '../context/ContactContext';
 import { A3TLogo } from './A3TLogo';
@@ -11,25 +12,45 @@ import { CustomerAccount } from '../types';
 interface ClientLoginPortalProps {
   isOpen: boolean;
   onClose: () => void;
+  defaultAdminMode?: boolean;
 }
 
-export const ClientLoginPortal: React.FC<ClientLoginPortalProps> = ({ isOpen, onClose }) => {
+export const ClientLoginPortal: React.FC<ClientLoginPortalProps> = ({ 
+  isOpen, 
+  onClose,
+  defaultAdminMode = false,
+}) => {
   const { 
+    contactInfo,
     getWhatsAppUrl, 
-    registeredCustomers, 
     activeCustomer, 
-    saveCustomerLogin, 
-    loginExistingCustomer, 
-    logoutCustomer, 
-    deleteCustomer, 
-    updateCustomerProgress 
+    isAdminLoggedIn,
+    adminPin,
+    loginDatabase,
+    registeredCustomers,
+    isLoadingLogs,
+    loginAsUser, 
+    registerUser, 
+    updateUserPhoneNumber,
+    logoutUser, 
+    loginAsAdmin, 
+    logoutAdmin,
+    updateOfficialContact,
+    refreshLoginDatabase,
+    updateCustomerStatus,
   } = useContact();
 
-  const [portalMode, setPortalMode] = useState<'client_login' | 'client_register' | 'client_dashboard' | 'ceos_admin'>(
-    activeCustomer ? 'client_dashboard' : 'client_login'
+  const [portalTab, setPortalTab] = useState<'user' | 'admin'>(
+    defaultAdminMode || isAdminLoggedIn ? 'admin' : (activeCustomer ? 'user' : 'user')
   );
 
-  // Registration Form State
+  // User Login & Registration form state
+  const [userMode, setUserMode] = useState<'signin' | 'signup'>(activeCustomer ? 'signin' : 'signin');
+  const [userIdentifier, setUserIdentifier] = useState('');
+  const [userLoginError, setUserLoginError] = useState('');
+  const [isSubmittingUser, setIsSubmittingUser] = useState(false);
+
+  // New Registration state
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -38,77 +59,170 @@ export const ClientLoginPortal: React.FC<ClientLoginPortalProps> = ({ isOpen, on
   const [regProjectTitle, setRegProjectTitle] = useState('');
   const [regNotes, setRegNotes] = useState('');
 
-  // Sign In Form State
-  const [loginIdentifier, setLoginIdentifier] = useState('');
-  const [loginError, setLoginError] = useState('');
+  // User Profile Phone Edit state
+  const [isEditingUserPhone, setIsEditingUserPhone] = useState(false);
+  const [newUserPhoneInput, setNewUserPhoneInput] = useState('');
+  const [userPhoneUpdateMsg, setUserPhoneUpdateMsg] = useState('');
 
-  // Revision Request State
+  // Revision request state
   const [revisionNote, setRevisionNote] = useState('');
   const [revisionSubmitted, setRevisionSubmitted] = useState(false);
 
-  // Founders Admin Access
-  const [adminPin, setAdminPin] = useState('');
-  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
-  const [adminError, setAdminError] = useState('');
+  // Admin PIN Login state
+  const [adminPinInput, setAdminPinInput] = useState('');
+  const [adminPinError, setAdminPinError] = useState('');
+  const [isSubmittingAdmin, setIsSubmittingAdmin] = useState(false);
+  const [adminActiveTab, setAdminActiveTab] = useState<'database' | 'official_numbers' | 'clients'>('database');
+
+  // Admin Official Contact Edit form state
+  const [adminContactForm, setAdminContactForm] = useState({
+    phone: contactInfo.phone,
+    whatsapp: contactInfo.whatsapp,
+    instagram: contactInfo.instagram,
+    youtube: contactInfo.youtube,
+    email: contactInfo.email,
+    location: contactInfo.location,
+  });
+  const [adminSaveSuccess, setAdminSaveSuccess] = useState(false);
+
+  // Database search / filter
+  const [dbSearch, setDbSearch] = useState('');
+  const [dbRoleFilter, setDbRoleFilter] = useState<'all' | 'user' | 'admin'>('all');
 
   if (!isOpen) return null;
 
-  // Handle Client Registration
-  const handleRegister = (e: React.FormEvent) => {
+  // Handle User Sign In
+  const handleUserLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserLoginError('');
+    if (!userIdentifier.trim()) return;
+
+    setIsSubmittingUser(true);
+    const result = await loginAsUser(userIdentifier.trim());
+    setIsSubmittingUser(false);
+
+    if (!result.success) {
+      setUserLoginError(result.error || 'Account not found. Please register as a new client below.');
+    }
+  };
+
+  // Handle User Registration
+  const handleUserRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regName.trim() || !regPhone.trim()) return;
 
-    const newCust = saveCustomerLogin({
+    setIsSubmittingUser(true);
+    const result = await registerUser({
       name: regName.trim(),
       phone: regPhone.trim(),
-      email: regEmail.trim() || `${regPhone.replace(/\D/g, '')}@client.a3tsolutions.com`,
+      email: regEmail.trim(),
       role: regRole,
       businessOrCollege: regBusinessOrCollege.trim(),
-      projectTitle: regProjectTitle.trim() || (regRole === 'shop' ? 'Shop Digital Platform' : 'College Academic Project'),
+      projectTitle: regProjectTitle.trim(),
       notes: regNotes.trim(),
     });
+    setIsSubmittingUser(false);
 
-    setPortalMode('client_dashboard');
+    if (!result.success) {
+      setUserLoginError(result.error || 'Registration failed');
+    }
   };
 
-  // Handle Client Sign In
-  const handleLogin = (e: React.FormEvent) => {
+  // 1-Click Quick Demo for client testing
+  const handleDemoUser = async (demoTargetPhone: string) => {
+    setUserLoginError('');
+    setIsSubmittingUser(true);
+    await loginAsUser(demoTargetPhone);
+    setIsSubmittingUser(false);
+  };
+
+  // Handle User Updating Their Personal Phone Number
+  const handleSaveUserPhone = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginError('');
-    if (!loginIdentifier.trim()) return;
+    if (!newUserPhoneInput.trim()) return;
 
-    const found = loginExistingCustomer(loginIdentifier);
-    if (found) {
-      setPortalMode('client_dashboard');
+    const result = await updateUserPhoneNumber(newUserPhoneInput.trim());
+    if (result.success) {
+      setUserPhoneUpdateMsg('Your phone number has been updated!');
+      setIsEditingUserPhone(false);
+      setTimeout(() => setUserPhoneUpdateMsg(''), 3000);
     } else {
-      setLoginError('No matching account found with that phone or email. Please register below.');
+      setUserPhoneUpdateMsg(result.error || 'Failed to update phone number');
     }
   };
 
-  // 1-Click Demo Login for quick testing
-  const handleQuickDemo = (role: 'shop' | 'student') => {
-    const demoTarget = registeredCustomers.find((c) => c.role === role);
-    if (demoTarget) {
-      loginExistingCustomer(demoTarget.phone);
-      setPortalMode('client_dashboard');
-    }
-  };
-
-  // Handle Founders Admin Unlock
-  const handleUnlockAdmin = (e: React.FormEvent) => {
+  // Handle Admin PIN Unlock
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Default PIN: 2305 (matching Instagram a3tsolutions2305) or 'admin' or 'a3t'
-    if (adminPin.trim() === '2305' || adminPin.trim().toLowerCase() === 'admin' || adminPin.trim().toLowerCase() === 'a3t') {
-      setIsAdminUnlocked(true);
-      setAdminError('');
+    setAdminPinError('');
+    if (!adminPinInput.trim()) return;
+
+    setIsSubmittingAdmin(true);
+    const result = await loginAsAdmin(adminPinInput.trim());
+    setIsSubmittingAdmin(false);
+
+    if (!result.success) {
+      setAdminPinError(result.error || 'Access Denied. Incorrect Admin PIN.');
     } else {
-      setAdminError('Incorrect PIN. (Hint: 2305)');
+      // Sync form with current contactInfo
+      setAdminContactForm({
+        phone: contactInfo.phone,
+        whatsapp: contactInfo.whatsapp,
+        instagram: contactInfo.instagram,
+        youtube: contactInfo.youtube,
+        email: contactInfo.email,
+        location: contactInfo.location,
+      });
     }
   };
 
-  const handleDownloadDemo = (fileName: string) => {
+  // Handle Admin Saving Official Business Contact Numbers
+  const handleSaveOfficialNumbers = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const result = await updateOfficialContact(adminContactForm, adminPinInput || adminPin || 'A3T BEST');
+    if (result.success) {
+      setAdminSaveSuccess(true);
+      setTimeout(() => setAdminSaveSuccess(false), 2500);
+    }
+  };
+
+  // Filter login database
+  const filteredLogins = loginDatabase.filter((record) => {
+    const matchesRole = dbRoleFilter === 'all' || record.role === dbRoleFilter;
+    const query = dbSearch.toLowerCase();
+    const matchesSearch =
+      !query ||
+      record.identifier.toLowerCase().includes(query) ||
+      (record.clientName && record.clientName.toLowerCase().includes(query)) ||
+      record.action.toLowerCase().includes(query) ||
+      (record.ip && record.ip.includes(query));
+    return matchesRole && matchesSearch;
+  });
+
+  const handleExportCsv = () => {
+    const headers = ['ID', 'Timestamp', 'Role', 'Identifier', 'Client Name', 'IP', 'Action'];
+    const rows = filteredLogins.map((l) => [
+      l.id,
+      l.timestamp,
+      l.role,
+      `"${l.identifier}"`,
+      `"${l.clientName || 'N/A'}"`,
+      `"${l.ip || '127.0.0.1'}"`,
+      `"${l.action.replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `a3t_login_database_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadDeliverable = (fileName: string) => {
     const blob = new Blob([
-      `A3T Solutions Official Project Deliverable\nProject: ${activeCustomer?.projectTitle}\nClient: ${activeCustomer?.name}\nFile: ${fileName}\n\nBuilt by A3T Solutions (Aryan Sharma, Asad Qureshi, Ahmed Shaikh & Taquee Shaikh - 4 CEOs).\nSupport WhatsApp: +91 8976121102`,
+      `A3T Solutions Official Production Deliverable\nProject: ${activeCustomer?.projectTitle}\nClient: ${activeCustomer?.name}\nFile: ${fileName}\n\nEngineered by A3T Solutions Core Technical Team.\nOfficial Support WhatsApp: ${contactInfo.whatsapp}`,
     ], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -120,72 +234,57 @@ export const ClientLoginPortal: React.FC<ClientLoginPortalProps> = ({ isOpen, on
     URL.revokeObjectURL(url);
   };
 
-  const handleSendRevision = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!revisionNote.trim()) return;
-    setRevisionSubmitted(true);
-    setTimeout(() => {
-      setRevisionNote('');
-      setRevisionSubmitted(false);
-    }, 2500);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden my-auto">
-        {/* Top Header */}
+      <div className="relative w-full max-w-4xl rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden my-auto text-left">
+        {/* Top Header Bar */}
         <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-6 py-4">
           <div className="flex items-center gap-3">
             <A3TLogo size="sm" showText={false} />
-            <div className="text-left">
-              <h3 className="text-base font-bold text-white">
-                {portalMode === 'ceos_admin'
-                  ? 'CEOs Project Master Desk (Founders Only)'
-                  : activeCustomer && portalMode === 'client_dashboard'
-                  ? `Client Project Tracker: ${activeCustomer.id}`
-                  : 'A3T Solutions Client & Student Portal'}
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <span>A3T Solutions Access Gateway</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                  {portalTab === 'admin' ? 'Admin Portal' : 'User / Client Portal'}
+                </span>
               </h3>
               <p className="text-xs text-slate-400">
-                {portalMode === 'ceos_admin'
-                  ? 'Aryan · Asad · Ahmed · Taquee'
-                  : activeCustomer && portalMode === 'client_dashboard'
-                  ? activeCustomer.name
-                  : 'Track your live project or log in to view active progress'}
+                {portalTab === 'admin'
+                  ? 'Founding Team Management & Login Database'
+                  : activeCustomer
+                  ? `Active Client: ${activeCustomer.name}`
+                  : 'Track project milestones, download deliverables, or submit updates'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Quick Switch to Founders Admin Desk */}
-            <button
-              onClick={() => {
-                if (portalMode === 'ceos_admin') {
-                  setPortalMode(activeCustomer ? 'client_dashboard' : 'client_login');
-                } else {
-                  setPortalMode('ceos_admin');
-                }
-              }}
-              className={`text-xs px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1.5 ${
-                portalMode === 'ceos_admin'
-                  ? 'bg-amber-500 text-slate-950 font-bold border-amber-500'
-                  : 'bg-slate-900 border-slate-800 text-amber-400 hover:border-amber-500/50'
-              }`}
-            >
-              <Users className="h-3.5 w-3.5" />
-              <span>{portalMode === 'ceos_admin' ? 'Back to Portal' : '4 CEOs Admin Desk'}</span>
-            </button>
-
-            {activeCustomer && portalMode === 'client_dashboard' && (
+            {/* Top Switcher: User Login vs Admin Login */}
+            <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
               <button
-                onClick={() => {
-                  logoutCustomer();
-                  setPortalMode('client_login');
-                }}
-                className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-lg border border-slate-800"
+                onClick={() => setPortalTab('user')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                  portalTab === 'user'
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
               >
-                Log Out
+                <LogIn className="h-3.5 w-3.5" />
+                <span>User Login</span>
               </button>
-            )}
+
+              <button
+                onClick={() => setPortalTab('admin')}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                  portalTab === 'admin'
+                    ? 'bg-cyan-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Shield className="h-3.5 w-3.5" />
+                <span>Admin Login</span>
+              </button>
+            </div>
 
             <button
               onClick={onClose}
@@ -197,502 +296,873 @@ export const ClientLoginPortal: React.FC<ClientLoginPortalProps> = ({ isOpen, on
         </div>
 
         {/* ============================================================== */}
-        {/* VIEW 1: CEOs ADMIN MASTER DESK (Aryan, Asad, Ahmed, Taquee) */}
+        {/* TAB 1: USER / CLIENT PORTAL */}
         {/* ============================================================== */}
-        {portalMode === 'ceos_admin' && (
-          <div className="p-6 sm:p-8 text-left space-y-6 max-h-[75vh] overflow-y-auto">
-            {!isAdminUnlocked ? (
-              <div className="max-w-md mx-auto py-8 text-center space-y-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 mx-auto">
-                  <Lock className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-white">CEOs Secure Dashboard</h4>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Enter your Founders PIN to view all client registrations and saved customer data.
-                  </p>
+        {portalTab === 'user' && (
+          <div className="p-6 sm:p-8 max-h-[75vh] overflow-y-auto">
+            {/* If Client is Logged In -> Show Dashboard */}
+            {activeCustomer ? (
+              <div className="space-y-6">
+                {/* User Top Card */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-cyan-400 font-bold">{activeCustomer.id}</span>
+                      <span className="text-slate-600">·</span>
+                      <span className="text-xs text-slate-400">
+                        {activeCustomer.role === 'shop' ? 'Shop Retail System' : 'Academic Capstone Project'}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white">{activeCustomer.projectTitle}</h3>
+                    <div className="text-xs text-slate-400">
+                      Organization: <strong className="text-slate-200">{activeCustomer.businessOrCollege}</strong>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 sm:border-l sm:border-slate-800 sm:pl-5">
+                    <div className="text-right">
+                      <div className="text-3xl font-extrabold text-cyan-400 font-mono">
+                        {activeCustomer.progressPercentage}%
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">{activeCustomer.status}</div>
+                    </div>
+                    <button
+                      onClick={logoutUser}
+                      className="text-xs text-slate-400 hover:text-rose-400 border border-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-900 transition-colors"
+                    >
+                      Log Out
+                    </button>
+                  </div>
                 </div>
 
-                <form onSubmit={handleUnlockAdmin} className="space-y-3">
-                  <input
-                    type="password"
-                    placeholder="Enter PIN (Default: 2305)"
-                    value={adminPin}
-                    onChange={(e) => setAdminPin(e.target.value)}
-                    className="w-full text-center rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                    autoFocus
-                  />
-                  {adminError && <p className="text-xs text-rose-400">{adminError}</p>}
+                {/* USER NUMBER EDIT SECTION: "in user edit number" */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-cyan-400" />
+                        <span>Your Contact Phone Number (For Project Updates & SMS Alerts)</span>
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Update your personal phone number where our team sends milestone notifications. (Official company numbers are configured in Admin Login).
+                      </p>
+                    </div>
+
+                    {!isEditingUserPhone && (
+                      <button
+                        onClick={() => {
+                          setNewUserPhoneInput(activeCustomer.phone);
+                          setIsEditingUserPhone(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:border-cyan-500/50 hover:bg-slate-800 transition-colors shrink-0"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                        <span>Edit My Number</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {userPhoneUpdateMsg && (
+                    <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 p-2 text-xs text-cyan-300 mb-3 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                      <span>{userPhoneUpdateMsg}</span>
+                    </div>
+                  )}
+
+                  {isEditingUserPhone ? (
+                    <form onSubmit={handleSaveUserPhone} className="flex flex-col sm:flex-row gap-2.5 items-center">
+                      <div className="relative flex-1 w-full">
+                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <input
+                          type="text"
+                          value={newUserPhoneInput}
+                          onChange={(e) => setNewUserPhoneInput(e.target.value)}
+                          placeholder="+91 98200 12345"
+                          className="w-full rounded-xl border border-slate-700 bg-slate-900 py-2 pl-9 pr-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          required
+                          autoFocus
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <button
+                          type="submit"
+                          className="flex-1 sm:flex-none rounded-xl bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors"
+                        >
+                          Save New Number
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingUserPhone(false)}
+                          className="rounded-xl border border-slate-800 px-3 py-2 text-xs text-slate-400 hover:text-white"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                      <span className="text-slate-500">Current Registered Phone:</span>
+                      <span className="font-mono font-bold text-cyan-300">{activeCustomer.phone}</span>
+                      <span className="text-slate-600">·</span>
+                      <span className="text-slate-500">Email: {activeCustomer.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Build Status Bar */}
+                <div>
+                  <div className="flex justify-between text-xs font-semibold text-slate-300 mb-1.5">
+                    <span>Overall Project Completion</span>
+                    <span className="font-mono text-cyan-400">{activeCustomer.progressPercentage}%</span>
+                  </div>
+                  <div className="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-700"
+                      style={{ width: `${activeCustomer.progressPercentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Deliverables Section */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center justify-between">
+                    <span>Deliverables &amp; Code Packages:</span>
+                    <span className="text-[11px] text-cyan-400 font-mono">Ready For Download</span>
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {[
+                      { name: `${activeCustomer.name.replace(/\s+/g, '_')}_Source_Code.zip`, type: 'Project Source Code', size: '24.2 MB' },
+                      { name: 'System_Architecture_Specs.pdf', type: 'Design & Database Models', size: '2.1 MB' },
+                      { name: 'Deployment_Credentials_Setup.txt', type: 'Hosting Access Guide', size: '45 KB' },
+                      { name: 'A3T_Invoice_TaxReceipt.pdf', type: 'Official Project Invoice', size: '380 KB' },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-slate-700 text-xs"
+                      >
+                        <div className="flex items-center gap-2.5 truncate">
+                          <Code2 className="h-4 w-4 text-cyan-400 shrink-0" />
+                          <div className="truncate">
+                            <div className="font-semibold text-white truncate">{item.name}</div>
+                            <div className="text-[10px] text-slate-400">{item.type} · {item.size}</div>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleDownloadDeliverable(item.name)}
+                          className="shrink-0 p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-400 hover:text-slate-950 text-slate-300 transition-colors"
+                          title="Download Deliverable"
+                        >
+                          <Download className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Direct Team WhatsApp Chat */}
+                <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-cyan-400 block">Direct Channel with the Engineering Team:</span>
+                    <p className="text-[11px] text-slate-300">
+                      Need live assistance or have milestone feedback? Message us directly anytime.
+                    </p>
+                  </div>
+
+                  <a
+                    href={getWhatsAppUrl(`Hi A3T Solutions! I am checking my active project ${activeCustomer.id} (${activeCustomer.projectTitle}).`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition-all shadow flex items-center gap-1.5 shrink-0"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span>WhatsApp Our Team</span>
+                  </a>
+                </div>
+
+                {/* Submit Revision */}
+                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
+                    Submit Revision or Feature Request:
+                  </h4>
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Need design tweaks, extra fields, or faculty feedback incorporated into your build?
+                  </p>
+
+                  {revisionSubmitted ? (
+                    <div className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 p-3 text-xs text-cyan-300 flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+                      <span>Revision request logged directly for the engineering team!</span>
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!revisionNote.trim()) return;
+                        setRevisionSubmitted(true);
+                        setTimeout(() => {
+                          setRevisionNote('');
+                          setRevisionSubmitted(false);
+                        }, 2500);
+                      }}
+                      className="space-y-3"
+                    >
+                      <textarea
+                        value={revisionNote}
+                        onChange={(e) => setRevisionNote(e.target.value)}
+                        placeholder="Detail the exact modifications or features you need..."
+                        rows={2}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-900 py-2 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                        required
+                      />
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          className="rounded-xl bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors"
+                        >
+                          Submit Revision Note
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              </div>
+            ) : userMode === 'signin' ? (
+              /* User Sign In Screen */
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <div>
+                    <h4 className="text-lg font-bold text-white">Client Project Sign In</h4>
+                    <p className="text-xs text-slate-400">
+                      Sign in with your registered phone number or email to access your live build.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setUserMode('signup')}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>New Client? Register Here</span>
+                  </button>
+                </div>
+
+                {/* Instant 1-Click Demo Buttons */}
+                <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-4">
+                  <span className="text-xs font-bold text-cyan-400 block mb-2">
+                    1-Click Instant Demo Login:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleDemoUser('+91 98200 12345')}
+                      className="flex items-center justify-between p-3 rounded-xl border border-cyan-500/30 bg-slate-950 hover:bg-slate-900 text-xs text-left text-cyan-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Store className="h-4 w-4 text-cyan-400" />
+                        <div>
+                          <div className="font-bold">Royal Heritage Jewellers</div>
+                          <div className="text-[10px] text-slate-400">Shop System (In-Progress 80%)</div>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDemoUser('+91 97654 32109')}
+                      className="flex items-center justify-between p-3 rounded-xl border border-blue-500/30 bg-slate-950 hover:bg-slate-900 text-xs text-left text-blue-200 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-blue-400" />
+                        <div>
+                          <div className="font-bold">Rahul Sharma (B.Tech AI)</div>
+                          <div className="text-[10px] text-slate-400">Academic Project (Completed 100%)</div>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sign In Form */}
+                <form onSubmit={handleUserLogin} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Enter Your Phone Number or Client Email
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                      <input
+                        type="text"
+                        value={userIdentifier}
+                        onChange={(e) => setUserIdentifier(e.target.value)}
+                        placeholder="e.g. +91 98200 12345 or client@example.com"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  {userLoginError && (
+                    <div className="flex items-center gap-2 text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{userLoginError}</span>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors"
+                    disabled={isSubmittingUser}
+                    className="w-full rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 py-3 text-xs font-bold text-slate-950 hover:from-cyan-300 hover:to-blue-500 transition-all flex items-center justify-center gap-2 shadow"
                   >
-                    Unlock Founders View
+                    <LogIn className="h-4 w-4" />
+                    <span>{isSubmittingUser ? 'Signing In...' : 'Sign In to Project Tracker'}</span>
                   </button>
                 </form>
               </div>
             ) : (
-              <div className="space-y-5">
-                {/* Header Stats */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              /* User Sign Up Screen */
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-2">
                   <div>
-                    <span className="text-xs font-mono text-amber-400">LOGGED-IN &amp; SAVED CUSTOMER DATABASE</span>
-                    <h3 className="text-xl font-bold text-white mt-0.5">
-                      Total Inquiries &amp; Clients: {registeredCustomers.length}
-                    </h3>
+                    <h4 className="text-lg font-bold text-white">Create New Client Account</h4>
+                    <p className="text-xs text-slate-400">
+                      Your details are recorded in our central database for our development team.
+                    </p>
                   </div>
-
-                  <div className="text-xs text-slate-400">
-                    Visible to Aryan, Asad, Ahmed &amp; Taquee anywhere on any device.
-                  </div>
+                  <button
+                    onClick={() => setUserMode('signin')}
+                    className="text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                  >
+                    Already registered? Sign In
+                  </button>
                 </div>
 
-                {/* Customers Table / List */}
-                <div className="space-y-3">
-                  {registeredCustomers.map((cust) => (
-                    <div
-                      key={cust.id}
-                      className="rounded-2xl border border-slate-800 bg-slate-950 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-all"
+                <form onSubmit={handleUserRegister} className="space-y-3.5">
+                  <div className="flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setRegRole('shop')}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        regRole === 'shop' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400'
+                      }`}
                     >
-                      <div className="space-y-1.5 flex-1 text-left">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-mono text-amber-400 font-bold">{cust.id}</span>
-                          <span className="text-slate-600">·</span>
-                          <span className="text-xs font-bold text-white">{cust.name}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            cust.role === 'shop' ? 'bg-amber-500/10 text-amber-300' : 'bg-blue-500/10 text-blue-300'
-                          }`}>
-                            {cust.role === 'shop' ? 'Shop Owner' : 'College Student'}
-                          </span>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
-                            {cust.status} ({cust.progressPercentage}%)
-                          </span>
-                        </div>
+                      Retail Shop Owner
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRegRole('student')}
+                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        regRole === 'student' ? 'bg-blue-600 text-white' : 'text-slate-400'
+                      }`}
+                    >
+                      College Student
+                    </button>
+                  </div>
 
-                        <div className="text-xs text-slate-300 font-medium">{cust.projectTitle}</div>
-                        <div className="text-[11px] text-slate-400">
-                          {cust.businessOrCollege} · Registered: {cust.registeredAt}
-                        </div>
-
-                        {cust.notes && (
-                          <div className="text-[11px] text-slate-400 bg-slate-900 border border-slate-800 p-2 rounded-lg mt-1 italic">
-                            &quot;{cust.notes}&quot;
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right Actions */}
-                      <div className="flex flex-wrap items-center gap-2 shrink-0">
-                        {/* Direct WhatsApp Call/Chat to Customer */}
-                        <a
-                          href={`https://wa.me/${cust.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
-                            `Hello ${cust.name}! This is Aryan/Asad/Ahmed/Taquee from A3T Solutions regarding your project (${cust.projectTitle}).`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 text-xs font-bold transition-all shadow"
-                        >
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          <span>WhatsApp Client</span>
-                        </a>
-
-                        {/* Direct Call */}
-                        <a
-                          href={`tel:${cust.phone.replace(/\D/g, '')}`}
-                          className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 px-3 py-1.5 text-xs font-semibold transition-all"
-                        >
-                          <Phone className="h-3.5 w-3.5 text-amber-400" />
-                          <span>Call</span>
-                        </a>
-
-                        {/* Status Updater */}
-                        <select
-                          value={cust.status}
-                          onChange={(e) => {
-                            const newStatus = e.target.value as CustomerAccount['status'];
-                            const newProg = newStatus === 'Completed' ? 100 : newStatus === 'Delivered' ? 90 : newStatus === 'In Progress' ? 50 : 15;
-                            updateCustomerProgress(cust.id, newStatus, newProg);
-                          }}
-                          className="rounded-xl border border-slate-700 bg-slate-900 text-[11px] py-1.5 px-2 text-slate-200"
-                        >
-                          <option value="New Inquiry">New Inquiry</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Delivered">Delivered</option>
-                          <option value="Completed">Completed</option>
-                        </select>
-
-                        {/* Delete Action */}
-                        <button
-                          onClick={() => deleteCustomer(cust.id)}
-                          className="p-1.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-900 transition-colors"
-                          title="Delete Record"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Your Full Name</label>
+                      <input
+                        type="text"
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        placeholder="e.g. Ramesh Kumar"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                        required
+                      />
                     </div>
-                  ))}
-                </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Phone / WhatsApp Number</label>
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="+91 98200 12345"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">
+                        {regRole === 'shop' ? 'Shop / Business Name' : 'College / University'}
+                      </label>
+                      <input
+                        type="text"
+                        value={regBusinessOrCollege}
+                        onChange={(e) => setRegBusinessOrCollege(e.target.value)}
+                        placeholder={regRole === 'shop' ? 'e.g. New Fashion Boutique' : 'e.g. Mumbai Technical College'}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Email Address (Optional)</label>
+                      <input
+                        type="email"
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        placeholder="client@example.com"
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      Project Title / Required Website or App
+                    </label>
+                    <input
+                      type="text"
+                      value={regProjectTitle}
+                      onChange={(e) => setRegProjectTitle(e.target.value)}
+                      placeholder={regRole === 'shop' ? 'e.g. Retail POS & WhatsApp Showroom' : 'e.g. AI Deep Learning Classifier with Complete Report'}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmittingUser}
+                    className="w-full rounded-xl bg-cyan-400 py-3 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-all flex items-center justify-center gap-2 shadow"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>{isSubmittingUser ? 'Saving...' : 'Register Account & Enter Portal'}</span>
+                  </button>
+                </form>
               </div>
             )}
           </div>
         )}
 
         {/* ============================================================== */}
-        {/* VIEW 2: CLIENT / STUDENT SIGN IN */}
+        {/* TAB 2: ADMIN PORTAL (PROTECTED BY PIN) */}
         {/* ============================================================== */}
-        {portalMode === 'client_login' && (
-          <div className="p-6 sm:p-8 text-left">
-            {/* Quick Toggle to Register */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
-              <div>
-                <h4 className="text-lg font-bold text-white">Client &amp; Student Sign In</h4>
-                <p className="text-xs text-slate-400">Access your live development tracker and project files.</p>
-              </div>
-              <button
-                onClick={() => setPortalMode('client_register')}
-                className="flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300"
-              >
-                <UserPlus className="h-4 w-4" />
-                <span>New Client? Register Here</span>
-              </button>
-            </div>
+        {portalTab === 'admin' && (
+          <div className="p-6 sm:p-8 max-h-[75vh] overflow-y-auto">
+            {!isAdminLoggedIn ? (
+              /* Admin PIN Gate */
+              <div className="max-w-md mx-auto py-8 text-center space-y-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-400 mx-auto border border-cyan-500/20">
+                  <Lock className="h-7 w-7" />
+                </div>
+                <div>
+                  <h4 className="text-xl font-bold text-white">Administrator Secure Gate</h4>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Enter the Founders Security PIN to access the Login Database and Official Numbers configuration.
+                  </p>
+                </div>
 
-            {/* Quick 1-Click Demo Buttons */}
-            <div className="mb-6 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
-              <span className="text-xs font-bold text-amber-400 block mb-2">Instant 1-Click Demo Login:</span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('shop')}
-                  className="flex items-center justify-between p-3 rounded-xl border border-amber-500/30 bg-slate-950 hover:bg-slate-900 text-xs text-left text-amber-300"
-                >
-                  <div className="flex items-center gap-2">
-                    <Store className="h-4 w-4 text-amber-400" />
-                    <div>
-                      <div className="font-bold">Royal Jewellers Showroom</div>
-                      <div className="text-[10px] text-slate-400">Shop Client (In-Progress 80%)</div>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemo('student')}
-                  className="flex items-center justify-between p-3 rounded-xl border border-blue-500/30 bg-slate-950 hover:bg-slate-900 text-xs text-left text-blue-300"
-                >
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-blue-400" />
-                    <div>
-                      <div className="font-bold">Rahul Sharma (B.Tech AI)</div>
-                      <div className="text-[10px] text-slate-400">Student Project (Completed 100%)</div>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Standard Login Form */}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Enter Your Registered Phone Number or Email
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                <form onSubmit={handleAdminLogin} className="space-y-3">
                   <input
-                    type="text"
-                    value={loginIdentifier}
-                    onChange={(e) => setLoginIdentifier(e.target.value)}
-                    placeholder="e.g. +91 98200 12345 or your email"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                    type="password"
+                    placeholder="Enter Admin Security Passkey"
+                    value={adminPinInput}
+                    onChange={(e) => setAdminPinInput(e.target.value)}
+                    className="w-full text-center tracking-widest text-base font-mono rounded-xl border border-slate-700 bg-slate-950 py-3 px-4 text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                    autoFocus
                     required
                   />
-                </div>
-              </div>
 
-              {loginError && <p className="text-xs text-rose-400">{loginError}</p>}
+                  {adminPinError && (
+                    <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400">
+                      {adminPinError}
+                    </div>
+                  )}
 
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-xs font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 transition-all flex items-center justify-center gap-2 shadow"
-              >
-                <LogIn className="h-4 w-4" />
-                <span>Sign In &amp; View Project Status</span>
-              </button>
-            </form>
-          </div>
-        )}
+                  <button
+                    type="submit"
+                    disabled={isSubmittingAdmin}
+                    className="w-full rounded-xl bg-cyan-400 py-3 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-all shadow"
+                  >
+                    {isSubmittingAdmin ? 'Verifying...' : 'Unlock Admin Console'}
+                  </button>
+                </form>
 
-        {/* ============================================================== */}
-        {/* VIEW 3: NEW CLIENT REGISTRATION (SAVED DIRECTLY FOR FOUNDERS) */}
-        {/* ============================================================== */}
-        {portalMode === 'client_register' && (
-          <div className="p-6 sm:p-8 text-left max-h-[75vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
-              <div>
-                <h4 className="text-lg font-bold text-white">Create New Client Account</h4>
-                <p className="text-xs text-slate-400">
-                  Your project details will be saved into our database for Aryan, Asad, Ahmed, and Taquee.
+                <p className="text-[11px] text-slate-500">
+                  Protected system route · Activity logged in central database
                 </p>
               </div>
-              <button
-                onClick={() => setPortalMode('client_login')}
-                className="text-xs font-semibold text-amber-400 hover:text-amber-300"
-              >
-                Already registered? Sign In
-              </button>
-            </div>
+            ) : (
+              /* Admin Unlocked Management Console */
+              <div className="space-y-6">
+                {/* Admin Subnav */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setAdminActiveTab('database')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        adminActiveTab === 'database'
+                          ? 'bg-cyan-500 text-slate-950 font-bold'
+                          : 'bg-slate-950 text-slate-300 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      <Database className="h-3.5 w-3.5" />
+                      <span>Access Login Database ({loginDatabase.length})</span>
+                    </button>
 
-            <form onSubmit={handleRegister} className="space-y-4">
-              {/* Role Switcher */}
-              <div className="flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800 mb-3">
-                <button
-                  type="button"
-                  onClick={() => setRegRole('shop')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                    regRole === 'shop' ? 'bg-amber-500 text-slate-950' : 'text-slate-400'
-                  }`}
-                >
-                  Shop / Business Client
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRegRole('student')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                    regRole === 'student' ? 'bg-blue-600 text-white' : 'text-slate-400'
-                  }`}
-                >
-                  College Student Project
-                </button>
-              </div>
+                    <button
+                      onClick={() => setAdminActiveTab('official_numbers')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        adminActiveTab === 'official_numbers'
+                          ? 'bg-cyan-500 text-slate-950 font-bold'
+                          : 'bg-slate-950 text-slate-300 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      <Settings2 className="h-3.5 w-3.5" />
+                      <span>Configure Official Numbers</span>
+                    </button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Your Full Name</label>
-                  <input
-                    type="text"
-                    value={regName}
-                    onChange={(e) => setRegName(e.target.value)}
-                    placeholder="e.g. Rahul Sharma"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                    required
-                  />
-                </div>
+                    <button
+                      onClick={() => setAdminActiveTab('clients')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        adminActiveTab === 'clients'
+                          ? 'bg-cyan-500 text-slate-950 font-bold'
+                          : 'bg-slate-950 text-slate-300 hover:text-white border border-slate-800'
+                      }`}
+                    >
+                      <Users className="h-3.5 w-3.5" />
+                      <span>Clients &amp; Inquiries ({registeredCustomers.length})</span>
+                    </button>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Phone / WhatsApp Number</label>
-                  <input
-                    type="tel"
-                    value={regPhone}
-                    onChange={(e) => setRegPhone(e.target.value)}
-                    placeholder="+91 8976121102"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    {regRole === 'shop' ? 'Shop / Business Name' : 'College / University Name'}
-                  </label>
-                  <input
-                    type="text"
-                    value={regBusinessOrCollege}
-                    onChange={(e) => setRegBusinessOrCollege(e.target.value)}
-                    placeholder={regRole === 'shop' ? 'e.g. Royal Jewellery Showroom' : 'e.g. Delhi Technical Campus'}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Email Address (Optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="client@example.com"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Project Title / Required Website or App
-                </label>
-                <input
-                  type="text"
-                  value={regProjectTitle}
-                  onChange={(e) => setRegProjectTitle(e.target.value)}
-                  placeholder={regRole === 'shop' ? 'e.g. Jewellery Live Gold Rate & Catalog App' : 'e.g. AI Attendance System with IEEE Report'}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Specific Requirements or Deadline
-                </label>
-                <textarea
-                  value={regNotes}
-                  onChange={(e) => setRegNotes(e.target.value)}
-                  placeholder="Tell us what you need..."
-                  rows={2}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-xs font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 transition-all flex items-center justify-center gap-2 shadow"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Save Account &amp; Access Dashboard</span>
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* ============================================================== */}
-        {/* VIEW 4: ACTIVE CLIENT PROJECT DASHBOARD */}
-        {/* ============================================================== */}
-        {portalMode === 'client_dashboard' && activeCustomer && (
-          <div className="p-6 sm:p-8 space-y-6 text-left max-h-[75vh] overflow-y-auto">
-            {/* Top Status Card */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-amber-400 font-bold">{activeCustomer.id}</span>
-                  <span className="text-slate-600">·</span>
-                  <span className="text-xs text-slate-400">
-                    {activeCustomer.role === 'shop' ? 'Shop Retail System' : 'Academic Project'}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-white mt-1">{activeCustomer.projectTitle}</h3>
-                <p className="text-xs text-slate-400 mt-1">Client: {activeCustomer.name} ({activeCustomer.businessOrCollege})</p>
-              </div>
-
-              <div className="text-right sm:border-l sm:border-slate-800 sm:pl-5">
-                <div className="text-3xl font-extrabold text-amber-400 font-mono">
-                  {activeCustomer.progressPercentage}%
-                </div>
-                <div className="text-xs text-slate-400 mt-0.5">{activeCustomer.status}</div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div>
-              <div className="flex justify-between text-xs font-semibold text-slate-300 mb-1.5">
-                <span>Overall Build Status</span>
-                <span className="font-mono text-amber-400">{activeCustomer.progressPercentage}%</span>
-              </div>
-              <div className="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-emerald-400 rounded-full transition-all duration-700"
-                  style={{ width: `${activeCustomer.progressPercentage}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Deliverables Section */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center justify-between">
-                <span>Deliverables &amp; Code Archives:</span>
-                <span className="text-[11px] text-emerald-400 font-mono">Ready For Download</span>
-              </h4>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {[
-                  { name: `${activeCustomer.name.replace(/\s+/g, '_')}_Source_Code.zip`, type: 'Project Source Code', size: '24.2 MB' },
-                  { name: 'Official_Project_Specification.pdf', type: 'Architecture & Credentials', size: '2.1 MB' },
-                  { name: 'A3T_Invoice_TaxReceipt.pdf', type: 'Official Invoice', size: '380 KB' },
-                  { name: 'Deployment_Guide_Readme.txt', type: 'Setup Instructions', size: '45 KB' },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-slate-700 text-xs"
+                  <button
+                    onClick={logoutAdmin}
+                    className="text-xs text-rose-400 hover:text-white px-3 py-1.5 rounded-lg border border-rose-500/30 hover:bg-rose-500/20"
                   >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <Code2 className="h-4 w-4 text-amber-400 shrink-0" />
-                      <div className="truncate">
-                        <div className="font-semibold text-white truncate">{item.name}</div>
-                        <div className="text-[10px] text-slate-400">{item.type} · {item.size}</div>
+                    Lock Admin
+                  </button>
+                </div>
+
+                {/* ========================================================= */}
+                {/* SUBTAB A: ACCESS LOGIN DATABASE */}
+                {/* ========================================================= */}
+                {adminActiveTab === 'database' && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+                      <div>
+                        <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                          <Database className="h-4 w-4 text-cyan-400" />
+                          <span>Persistent Authentication &amp; Audit Log Database</span>
+                        </h4>
+                        <p className="text-xs text-slate-400">
+                          Records who is logging in, IP, device user-agent, and activity across user and admin sessions.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={refreshLoginDatabase}
+                          className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-300 hover:text-white"
+                          title="Refresh Database"
+                        >
+                          <RefreshCw className={`h-3.5 w-3.5 ${isLoadingLogs ? 'animate-spin' : ''}`} />
+                          <span>Refresh</span>
+                        </button>
+
+                        <button
+                          onClick={handleExportCsv}
+                          className="flex items-center gap-1 rounded-lg bg-cyan-400 text-slate-950 px-3 py-1.5 text-xs font-bold hover:bg-cyan-300"
+                        >
+                          <FileSpreadsheet className="h-3.5 w-3.5" />
+                          <span>Export CSV</span>
+                        </button>
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleDownloadDemo(item.name)}
-                      className="shrink-0 p-1.5 rounded-lg bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-300 transition-colors"
-                      title="Download Deliverable"
-                    >
-                      <Download className="h-4 w-4" />
-                    </button>
+                    {/* Filters */}
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                        <input
+                          type="text"
+                          value={dbSearch}
+                          onChange={(e) => setDbSearch(e.target.value)}
+                          placeholder="Search logins by phone, email, client name, or IP..."
+                          className="w-full rounded-xl border border-slate-800 bg-slate-950 py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        {(['all', 'user', 'admin'] as const).map((r) => (
+                          <button
+                            key={r}
+                            onClick={() => setDbRoleFilter(r)}
+                            className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize ${
+                              dbRoleFilter === r
+                                ? 'bg-cyan-500 text-slate-950 font-bold'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {r}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Log Database Records Table */}
+                    <div className="rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs text-slate-300">
+                          <thead className="bg-slate-900/80 text-[11px] uppercase tracking-wider text-slate-400 font-mono border-b border-slate-800">
+                            <tr>
+                              <th className="py-2.5 px-3">Timestamp</th>
+                              <th className="py-2.5 px-3">Role</th>
+                              <th className="py-2.5 px-3">Identifier / Client</th>
+                              <th className="py-2.5 px-3">Action Details</th>
+                              <th className="py-2.5 px-3">IP Address</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60 font-sans">
+                            {filteredLogins.length === 0 ? (
+                              <tr>
+                                <td colSpan={5} className="py-8 text-center text-slate-500">
+                                  No login records match the search filter.
+                                </td>
+                              </tr>
+                            ) : (
+                              filteredLogins.map((record) => (
+                                <tr key={record.id} className="hover:bg-slate-900/40 transition-colors">
+                                  <td className="py-2.5 px-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                                    {new Date(record.timestamp).toLocaleString('en-IN', {
+                                      dateStyle: 'short',
+                                      timeStyle: 'short',
+                                    })}
+                                  </td>
+                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                    <span
+                                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                        record.role === 'admin'
+                                          ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                                          : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
+                                      }`}
+                                    >
+                                      {record.role}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 px-3 whitespace-nowrap">
+                                    <div className="font-semibold text-white">
+                                      {record.clientName || record.identifier}
+                                    </div>
+                                    <div className="text-[10px] text-slate-500 font-mono">
+                                      {record.identifier}
+                                    </div>
+                                  </td>
+                                  <td className="py-2.5 px-3 text-slate-300 max-w-xs truncate">
+                                    {record.action}
+                                  </td>
+                                  <td className="py-2.5 px-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                                    {record.ip || '127.0.0.1'}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                )}
 
-            {/* Direct Contact with the 4 CEOs */}
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div>
-                <span className="text-xs font-bold text-emerald-400 block">Direct Line to Aryan, Asad, Ahmed &amp; Taquee:</span>
-                <p className="text-[11px] text-slate-300">Have questions about your project progress? Message us anytime.</p>
-              </div>
+                {/* ========================================================= */}
+                {/* SUBTAB B: CONFIGURE OFFICIAL NUMBERS & HANDLES */}
+                {/* ========================================================= */}
+                {adminActiveTab === 'official_numbers' && (
+                  <form onSubmit={handleSaveOfficialNumbers} className="space-y-4">
+                    <div className="bg-slate-950 border border-slate-800 p-4 rounded-2xl">
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Settings2 className="h-4 w-4 text-cyan-400" />
+                        <span>Official Business Contact Numbers &amp; Social Channels</span>
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        Changes made here update the official contact info across the entire website and are stored in the server database.
+                      </p>
+                    </div>
 
-              <a
-                href={getWhatsAppUrl(`Hi Aryan, Asad, Ahmed & Taquee! I am checking my project ${activeCustomer.id} (${activeCustomer.projectTitle}).`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition-all shadow flex items-center gap-1.5 shrink-0"
-              >
-                <MessageSquare className="h-3.5 w-3.5" />
-                <span>WhatsApp the 4 CEOs</span>
-              </a>
-            </div>
+                    {adminSaveSuccess && (
+                      <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-300 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                        <span>Official company numbers and social handles updated successfully!</span>
+                      </div>
+                    )}
 
-            {/* Revision Request Form */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">
-                Request a Revision or Modification:
-              </h4>
-              <p className="text-[11px] text-slate-400 mb-3">
-                Need color changes, extra fields, or faculty feedback incorporated?
-              </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Phone */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Official Call Phone Number
+                        </label>
+                        <input
+                          type="text"
+                          value={adminContactForm.phone}
+                          onChange={(e) => setAdminContactForm({ ...adminContactForm, phone: e.target.value })}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          required
+                        />
+                      </div>
 
-              {revisionSubmitted ? (
-                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-300 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span>Revision request sent to the 4 CEOs!</span>
-                </div>
-              ) : (
-                <form onSubmit={handleSendRevision} className="space-y-3">
-                  <textarea
-                    value={revisionNote}
-                    onChange={(e) => setRevisionNote(e.target.value)}
-                    placeholder="Describe the exact changes you want..."
-                    rows={2}
-                    className="w-full rounded-xl border border-slate-700 bg-slate-900 py-2 px-3 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                    required
-                  />
-                  <div className="flex items-center justify-end">
-                    <button
-                      type="submit"
-                      className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors"
-                    >
-                      Submit Revision
-                    </button>
+                      {/* WhatsApp */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Official WhatsApp Number (with country code)
+                        </label>
+                        <input
+                          type="text"
+                          value={adminContactForm.whatsapp}
+                          onChange={(e) => setAdminContactForm({ ...adminContactForm, whatsapp: e.target.value })}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Instagram */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Instagram Handle
+                        </label>
+                        <input
+                          type="text"
+                          value={adminContactForm.instagram}
+                          onChange={(e) => setAdminContactForm({ ...adminContactForm, instagram: e.target.value })}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+
+                      {/* YouTube */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          YouTube Channel Link
+                        </label>
+                        <input
+                          type="url"
+                          value={adminContactForm.youtube}
+                          onChange={(e) => setAdminContactForm({ ...adminContactForm, youtube: e.target.value })}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Email */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Business Inquiries Email
+                        </label>
+                        <input
+                          type="email"
+                          value={adminContactForm.email}
+                          onChange={(e) => setAdminContactForm({ ...adminContactForm, email: e.target.value })}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+
+                      {/* Location */}
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">
+                          Coverage Area / Operational Base
+                        </label>
+                        <input
+                          type="text"
+                          value={adminContactForm.location}
+                          onChange={(e) => setAdminContactForm({ ...adminContactForm, location: e.target.value })}
+                          className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="submit"
+                        className="flex items-center gap-2 rounded-xl bg-cyan-400 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors shadow"
+                      >
+                        <Save className="h-4 w-4" />
+                        <span>Save &amp; Broadcast Official Numbers</span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* ========================================================= */}
+                {/* SUBTAB C: CLIENTS & INQUIRIES */}
+                {/* ========================================================= */}
+                {adminActiveTab === 'clients' && (
+                  <div className="space-y-3">
+                    {registeredCustomers.map((cust) => (
+                      <div
+                        key={cust.id}
+                        className="rounded-2xl border border-slate-800 bg-slate-950 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-cyan-400 font-bold">{cust.id}</span>
+                            <span className="text-slate-600">·</span>
+                            <span className="text-xs font-bold text-white">{cust.name}</span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300">
+                              {cust.role === 'shop' ? 'Shop' : 'Student'}
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
+                              {cust.status} ({cust.progressPercentage}%)
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-300">{cust.projectTitle}</div>
+                          <div className="text-[11px] text-slate-500">
+                            {cust.businessOrCollege} · Phone: <strong className="text-slate-300 font-mono">{cust.phone}</strong>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <a
+                            href={`https://wa.me/${cust.phone.replace(/\D/g, '')}?text=${encodeURIComponent(
+                              `Hello ${cust.name}! This is the A3T Solutions technical team regarding your project ${cust.id}.`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 text-xs font-bold transition-all"
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            <span>WhatsApp</span>
+                          </a>
+
+                          <select
+                            value={cust.status}
+                            onChange={(e) => {
+                              const newStatus = e.target.value as CustomerAccount['status'];
+                              const newProg =
+                                newStatus === 'Completed'
+                                  ? 100
+                                  : newStatus === 'Delivered'
+                                  ? 90
+                                  : newStatus === 'In Progress'
+                                  ? 60
+                                  : 15;
+                              updateCustomerStatus(cust.id, newStatus, newProg);
+                            }}
+                            className="rounded-xl border border-slate-700 bg-slate-900 text-xs py-1.5 px-2 text-slate-200"
+                          >
+                            <option value="New Inquiry">New Inquiry</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Completed">Completed</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </form>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

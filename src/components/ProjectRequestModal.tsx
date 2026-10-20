@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, GraduationCap, CheckCircle2, MessageSquare, Send, Calendar, Clock, Code2 } from 'lucide-react';
+import { X, GraduationCap, CheckCircle2, MessageSquare, Send } from 'lucide-react';
 import { useContact } from '../context/ContactContext';
 
 interface ProjectRequestModalProps {
@@ -13,7 +13,7 @@ export const ProjectRequestModal: React.FC<ProjectRequestModalProps> = ({
   onClose,
   initialTopic = '',
 }) => {
-  const { getWhatsAppUrl, saveCustomerLogin } = useContact();
+  const { getWhatsAppUrl, registerUser } = useContact();
 
   const [studentName, setStudentName] = useState('');
   const [studentPhone, setStudentPhone] = useState('');
@@ -26,11 +26,11 @@ export const ProjectRequestModal: React.FC<ProjectRequestModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName.trim() || !studentPhone.trim()) return;
 
-    saveCustomerLogin({
+    await registerUser({
       name: studentName.trim(),
       phone: studentPhone.trim(),
       email: `${studentPhone.replace(/\D/g, '')}@student.a3tsolutions.com`,
@@ -61,12 +61,12 @@ Please confirm availability!`;
       <div className="relative w-full max-w-xl rounded-3xl border border-slate-800 bg-slate-900 shadow-2xl p-6 sm:p-8 text-left my-auto">
         <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400">
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-white">College Project Submission Desk</h3>
-              <p className="text-xs text-slate-400">Directly reviewed by A3T software engineers</p>
+              <p className="text-xs text-slate-400">Reviewed directly by our technical engineering team</p>
             </div>
           </div>
 
@@ -86,7 +86,7 @@ Please confirm availability!`;
             <div>
               <h4 className="text-lg font-bold text-white">Requirements Received!</h4>
               <p className="text-xs text-slate-300 max-w-md mx-auto mt-1">
-                Aryan or one of our co-founders will review your project syllabus and message you within 15 minutes with topic structure and demo slots.
+                Our co-founders and development engineers will review your project syllabus and message you within 15 minutes with topic structure and demo options.
               </p>
             </div>
 
@@ -119,7 +119,7 @@ Please confirm availability!`;
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
                   placeholder="e.g. Rahul Sharma"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                   required
                 />
               </div>
@@ -131,7 +131,7 @@ Please confirm availability!`;
                   value={studentPhone}
                   onChange={(e) => setStudentPhone(e.target.value)}
                   placeholder="+91 8976121102"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                   required
                 />
               </div>
@@ -145,16 +145,16 @@ Please confirm availability!`;
                   value={collegeName}
                   onChange={(e) => setCollegeName(e.target.value)}
                   placeholder="e.g. Delhi Technical Campus"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Course & Branch</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Course &amp; Branch</label>
                 <select
                   value={course}
                   onChange={(e) => setCourse(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white focus:border-cyan-500 focus:outline-none"
                 >
                   <option value="B.Tech CSE">B.Tech Computer Science (CSE)</option>
                   <option value="B.Tech IT">B.Tech Information Tech (IT)</option>
@@ -175,7 +175,7 @@ Please confirm availability!`;
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. AI-driven attendance or leave empty if you want recommendations"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
               />
             </div>
 
@@ -186,7 +186,7 @@ Please confirm availability!`;
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 placeholder="e.g. Next Monday, or 3 days"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
               />
             </div>
 
@@ -199,7 +199,7 @@ Please confirm availability!`;
                 onChange={(e) => setAdditionalNotes(e.target.value)}
                 placeholder="Mention any specific tech stack (React, Python, Flutter) or college report page count..."
                 rows={2}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none resize-none"
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2 px-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none resize-none"
               />
             </div>
 
@@ -211,12 +211,12 @@ Please confirm availability!`;
                 className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-3 text-xs font-bold text-center text-white transition-all flex items-center justify-center gap-2 shadow"
               >
                 <MessageSquare className="h-4 w-4" />
-                <span>Submit & Chat on WhatsApp</span>
+                <span>Submit &amp; Chat on WhatsApp</span>
               </a>
 
               <button
                 type="submit"
-                className="flex-1 rounded-xl bg-blue-600 hover:bg-blue-500 py-3 text-xs font-bold text-center text-white transition-all flex items-center justify-center gap-2"
+                className="flex-1 rounded-xl bg-cyan-400 hover:bg-cyan-300 py-3 text-xs font-bold text-slate-950 transition-all flex items-center justify-center gap-2"
               >
                 <Send className="h-4 w-4" />
                 <span>Submit Form Directly</span>

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Gem, Pill, Scissors, ShoppingCart, Sparkles, CheckCircle2, ArrowRight, MessageSquare, Smartphone, Laptop, BarChart3, Clock, ShieldCheck } from 'lucide-react';
+import { Gem, Pill, Scissors, ShoppingCart, CheckCircle2, ArrowRight, MessageSquare, Laptop, ShieldCheck } from 'lucide-react';
 import { useContact } from '../context/ContactContext';
 
 interface ShopSolutionsProps {
-  onOpenQuote: (shopType: string) => void;
+  onConsultShop: (shopType: string) => void;
 }
 
-export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => {
+export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onConsultShop }) => {
   const { getWhatsAppUrl } = useContact();
   const [activeDemo, setActiveDemo] = useState<'jewellery' | 'medical' | 'salon' | 'general_store'>('jewellery');
 
@@ -15,7 +15,6 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
       id: 'jewellery' as const,
       title: 'Jewellery Showrooms',
       icon: Gem,
-      color: 'amber',
       tagline: 'High-end digital catalog & live gold rate showcase',
       description: 'Transform your jewellery business with a luxury mobile-friendly website showcasing gold, diamond, and silver collections with direct WhatsApp inquiry.',
       features: [
@@ -26,19 +25,18 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
         'Customer Digital Certificate & Hallmarking verification',
         'Admin panel to easily upload new designs from mobile',
       ],
-      deliverable: '5–7 Days Delivery',
+      deliverable: '3–5 Days Delivery',
     },
     {
       id: 'medical' as const,
       title: 'Medical Stores & Pharmacies',
       icon: Pill,
-      color: 'emerald',
       tagline: 'Medicine inventory, expiry alerts & prescription upload',
       description: 'Run your chemist shop smoothly with automatic medicine stock alerts, digital prescription intake, and instant barcode billing.',
       features: [
         'Batch-wise Medicine Expiry Date Alerts (Zero stock wastage)',
         'Customer Prescription Photo Upload via Mobile Web',
-        'Instant GST Barcode Billing with thermal printer support',
+        'Instant Barcode Billing with thermal printer support',
         'Low-Stock alerts for essential life-saving medicines',
         'Digital WhatsApp receipt delivery to patients',
         'Local Home Delivery order management portal',
@@ -49,12 +47,11 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
       id: 'salon' as const,
       title: 'Salons, Spas & Parlours',
       icon: Scissors,
-      color: 'pink',
       tagline: '24/7 seat booking & automated client reminders',
-      description: 'Say goodbye to missed phone calls and empty slots. Give your clients a sleek appointment booking link with stylist selection and package pricing.',
+      description: 'Say goodbye to missed phone calls and empty slots. Give your clients a sleek appointment booking link with stylist selection and transparent service packages.',
       features: [
         '24/7 Self-Service Slot & Stylist Booking System',
-        'Full Service Menu with transparent pricing & packages',
+        'Full Service Menu with transparent service packages',
         'Automated WhatsApp & SMS appointment reminders',
         'Stylist seat allocation & daily schedule organizer',
         'Before & After Portfolio gallery to attract bridal clients',
@@ -66,7 +63,6 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
       id: 'general_store' as const,
       title: 'General Stores & Kirana',
       icon: ShoppingCart,
-      color: 'blue',
       tagline: 'Digital Khata ledger & neighbourhood ordering app',
       description: 'Modernize your local grocery store with fast barcode scanning, digital customer credit ledger (khata), and WhatsApp order taking.',
       features: [
@@ -77,7 +73,7 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
         'Multi-lingual bill generation (English, Hindi, Regional)',
         'Cloud backup so your shop accounts are never lost',
       ],
-      deliverable: '3–6 Days Delivery',
+      deliverable: '3–5 Days Delivery',
     },
   ];
 
@@ -87,26 +83,29 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div className="max-w-2xl text-left">
-            <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 mb-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-cyan-400 mb-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
               <span>SHOP DIGITALIZATION SUITE</span>
               <span aria-hidden="true">·</span>
-              <span className="text-slate-400 font-normal">Custom Crafted for Retailers</span>
+              <span className="text-slate-400 font-normal">Custom Engineered for Retail Businesses</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Tech That Brings Customers & Sales to Your Shop.
+            <h2
+              className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Technology Tailored for Local Businesses.
             </h2>
             <p className="mt-3 text-base text-slate-300">
-              Big software companies charge tens of thousands for complicated tools. A3T Solutions builds clean, ultra-fast websites and billing apps tailored specifically to your exact retail shop requirements.
+              Generic off-the-shelf software is bloated and expensive. A3T Solutions builds custom, lightning-fast digital storefronts and inventory systems designed around your store&apos;s real operations.
             </p>
           </div>
 
           <div className="mt-6 md:mt-0">
             <button
-              onClick={() => onOpenQuote('jewellery')}
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-md shadow-amber-500/10"
+              onClick={() => onConsultShop('jewellery')}
+              className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors shadow-md shadow-cyan-500/10"
             >
-              <span>Get Shop Tech Quote</span>
+              <span>Consult on Shop Tech</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
@@ -124,25 +123,20 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
                 onClick={() => setActiveDemo(shop.id)}
                 className={`cursor-pointer rounded-2xl border p-5 text-left transition-all duration-300 flex flex-col justify-between ${
                   isSelected
-                    ? 'border-amber-500/70 bg-slate-900 shadow-xl shadow-amber-500/5 ring-1 ring-amber-500/30'
+                    ? 'border-cyan-500/70 bg-slate-900 shadow-xl shadow-cyan-500/10 ring-1 ring-cyan-500/40'
                     : 'border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/80'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 rounded-xl ${
-                      shop.id === 'jewellery' ? 'bg-amber-500/10 text-amber-400' :
-                      shop.id === 'medical' ? 'bg-emerald-500/10 text-emerald-400' :
-                      shop.id === 'salon' ? 'bg-pink-500/10 text-pink-400' :
-                      'bg-blue-500/10 text-blue-400'
-                    }`}>
+                    <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400">
                       <Icon className="h-6 w-6" />
                     </div>
                     <span className="text-[11px] font-mono text-slate-400">{shop.deliverable}</span>
                   </div>
 
                   <h3 className="text-lg font-bold text-white mb-1">{shop.title}</h3>
-                  <p className="text-xs text-amber-400/90 font-medium mb-3">{shop.tagline}</p>
+                  <p className="text-xs text-cyan-400/90 font-medium mb-3">{shop.tagline}</p>
                   <p className="text-xs text-slate-400 leading-relaxed mb-4">{shop.description}</p>
                 </div>
 
@@ -150,17 +144,21 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
                   <div className="space-y-1.5 border-t border-slate-800/80 pt-3 mb-4">
                     {shop.features.slice(0, 3).map((feat, idx) => (
                       <div key={idx} className="flex items-start gap-1.5 text-xs text-slate-300">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400 shrink-0 mt-0.5" />
                         <span className="truncate">{feat}</span>
                       </div>
                     ))}
                   </div>
 
                   <div className="flex items-center justify-between text-xs font-semibold pt-2">
-                    <span className={isSelected ? 'text-amber-400' : 'text-slate-400'}>
+                    <span className={isSelected ? 'text-cyan-400' : 'text-slate-400'}>
                       {isSelected ? 'Viewing Live Preview ↓' : 'Click to Preview'}
                     </span>
-                    <ArrowRight className={`h-3.5 w-3.5 transition-transform ${isSelected ? 'rotate-90 text-amber-400' : 'text-slate-400'}`} />
+                    <ArrowRight
+                      className={`h-3.5 w-3.5 transition-transform ${
+                        isSelected ? 'rotate-90 text-cyan-400' : 'text-slate-400'
+                      }`}
+                    />
                   </div>
                 </div>
               </div>
@@ -168,11 +166,13 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
           })}
         </div>
 
-        {/* Interactive Live Interactive Prototype Simulation */}
+        {/* Live Interactive Prototype Simulation */}
         <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-6 text-left">
             <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Live Functional Concept Preview</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                Live Functional Concept Preview
+              </span>
               <h3 className="text-xl font-bold text-white mt-1">
                 {activeDemo === 'jewellery' && 'Royal Gold & Diamond Showroom Interactive Portal'}
                 {activeDemo === 'medical' && 'Apollo Care Medical & Pharmacy Management System'}
@@ -181,7 +181,7 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
               </h3>
             </div>
 
-            {/* Quick WhatsApp Inquiry for this prototype */}
+            {/* Direct WhatsApp Consultation */}
             <div className="flex items-center gap-3">
               <a
                 href={getWhatsAppUrl(`Hi A3T Solutions! I like the ${activeDemo} shop system. Can you build this for my store?`)}
@@ -194,10 +194,10 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
               </a>
 
               <button
-                onClick={() => onOpenQuote(activeDemo)}
-                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors"
+                onClick={() => onConsultShop(activeDemo)}
+                className="rounded-xl bg-cyan-400 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-cyan-300 transition-colors"
               >
-                Get Exact Price
+                Discuss Specifications
               </button>
             </div>
           </div>
@@ -206,39 +206,40 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
           {activeDemo === 'jewellery' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left">
               <div className="lg:col-span-6 space-y-4">
-                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 flex items-center justify-between text-xs">
+                <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-3 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="font-semibold text-amber-300">Live Gold Rate Today:</span>
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="font-semibold text-cyan-300">Live Gold Rate Today:</span>
                   </div>
                   <div className="font-mono text-slate-200">
-                    22K: <span className="text-amber-400 font-bold">₹71,450 / 10g</span> · 24K: <span className="text-amber-400 font-bold">₹77,950</span>
+                    22K: <span className="text-cyan-400 font-bold">₹71,450 / 10g</span> · 24K:{' '}
+                    <span className="text-cyan-400 font-bold">₹77,950</span>
                   </div>
                 </div>
 
                 <h4 className="text-lg font-bold text-white">What we build for your Jewellery Store:</h4>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
                     <span><strong>High-Resolution Design Showroom:</strong> Categorized by Bridal Sets, Necklaces, Bangles, Rings, and Light-weight Daily Wear.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span><strong>Direct WhatsApp Order Button:</strong> Customers click on any ring or necklace, and it opens a WhatsApp message with the product image and code ready to order.</span>
+                    <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span><strong>Direct WhatsApp Order Button:</strong> Customers tap any design, launching a pre-populated inquiry with the exact item code.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span><strong>Custom Jewellery Calculator:</strong> Automatic estimation of Making Charges + Gold Weight + GST.</span>
+                    <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span><strong>Making Charges & GST Calculator:</strong> Automated calculation based on daily live market gold and diamond prices.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                    <span><strong>Simple Owner Mobile App:</strong> Click a photo from your phone camera, type the weight, and publish to your website in 10 seconds!</span>
+                    <CheckCircle2 className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
+                    <span><strong>Fast Store Manager Mobile App:</strong> Capture photos directly from your phone camera and publish new items in seconds.</span>
                   </li>
                 </ul>
 
                 <div className="pt-2 flex items-center gap-4 text-xs text-slate-400">
-                  <span className="flex items-center gap-1.5"><Laptop className="h-3.5 w-3.5 text-amber-400" /> Desktop & Mobile</span>
-                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-amber-400" /> SSL Secure & Fast Hosting</span>
+                  <span className="flex items-center gap-1.5"><Laptop className="h-3.5 w-3.5 text-cyan-400" /> Desktop &amp; Mobile</span>
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-cyan-400" /> High-Security SSL &amp; Cloudflare CDN</span>
                 </div>
               </div>
 
@@ -256,9 +257,9 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
                   <div className="p-4 bg-slate-950 flex items-center justify-between">
                     <div>
                       <div className="text-xs font-bold text-white">Royal Heritage Collection 2026</div>
-                      <div className="text-[11px] text-slate-400">Auto-updating gold rates & WhatsApp catalog</div>
+                      <div className="text-[11px] text-slate-400">Auto-updating gold rates &amp; WhatsApp catalog</div>
                     </div>
-                    <span className="rounded-lg bg-amber-500/20 text-amber-300 px-2.5 py-1 text-xs font-semibold">
+                    <span className="rounded-lg bg-cyan-500/20 text-cyan-300 px-2.5 py-1 text-xs font-semibold">
                       Sample Concept
                     </span>
                   </div>
@@ -326,11 +327,11 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
                   <strong>Zero Missed Appointments:</strong> Clients can book slots online 24/7 without calling, and get automated WhatsApp reminders.
                 </div>
 
-                <h4 className="text-lg font-bold text-white">What we build for your Salon & Spa:</h4>
+                <h4 className="text-lg font-bold text-white">What we build for your Salon &amp; Spa:</h4>
                 <ul className="space-y-2.5 text-xs text-slate-300">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-pink-400 shrink-0 mt-0.5" />
-                    <span><strong>Interactive Booking Calendar:</strong> Select Haircut, Facial, Keratin, or Bridal Package, pick preferred stylist & available time-slot.</span>
+                    <span><strong>Interactive Booking Calendar:</strong> Select Haircut, Facial, Keratin, or Bridal Package, pick preferred stylist &amp; available time-slot.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-pink-400 shrink-0 mt-0.5" />
@@ -356,7 +357,7 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
                   </div>
                   <div className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs space-y-1">
                     <div className="text-slate-400">Selected Service:</div>
-                    <div className="text-white font-bold">Hair Spa + Deluxe Beard Styling · ₹850</div>
+                    <div className="text-white font-bold">Hair Spa + Deluxe Styling Package</div>
                     <div className="text-emerald-400 text-[11px]">Instant Confirmation via WhatsApp SMS</div>
                   </div>
                 </div>
@@ -400,8 +401,8 @@ export const ShopSolutions: React.FC<ShopSolutionsProps> = ({ onOpenQuote }) => 
                     <div className="flex justify-between"><span>Tata Tea Gold 500g (x1)</span><span>₹210.00</span></div>
                   </div>
                   <div className="pt-2 border-t border-slate-800 flex justify-between font-bold text-white">
-                    <span>Total Amount (Incl. GST):</span>
-                    <span className="text-amber-400 text-sm">₹745.00</span>
+                    <span>Total Amount:</span>
+                    <span className="text-cyan-400 text-sm">₹745.00</span>
                   </div>
                   <div className="text-[10px] text-center text-slate-500">
                     Print Thermal Bill / Send WhatsApp Bill to +91 98*** ****

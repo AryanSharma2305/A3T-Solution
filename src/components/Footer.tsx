@@ -1,14 +1,14 @@
 import React from 'react';
-import { Phone, MessageSquare, Instagram, Youtube, ArrowUp } from 'lucide-react';
+import { Phone, MessageSquare, Instagram, Youtube, ArrowUp, Shield } from 'lucide-react';
 import { A3TLogo } from './A3TLogo';
 import { useContact } from '../context/ContactContext';
 
 interface FooterProps {
-  onOpenLogin: () => void;
-  onOpenQuote: () => void;
+  onOpenUserLogin: () => void;
+  onOpenAdminLogin: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenLogin, onOpenQuote }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenUserLogin, onOpenAdminLogin }) => {
   const { contactInfo, getPhoneUrl, getWhatsAppUrl, getInstagramUrl, getYoutubeUrl } = useContact();
 
   const scrollToTop = () => {
@@ -23,13 +23,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLogin, onOpenQuote }) => {
           <div className="lg:col-span-2 space-y-4">
             <A3TLogo size="md" />
             <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
-              A3T Solutions is an engineering company founded by 4 equal CEOs: Aryan Sharma, Asad Qureshi, Ahmed Shaikh, and Taquee Shaikh. We deliver modern websites, mobile apps, and billing software for retail shops and college semester projects.
+              A3T Solutions is a digital software engineering agency founded by our technical co-founders alongside our core development team. We deliver custom websites, mobile applications, and academic systems tailored for fast business growth.
             </p>
 
             <div className="flex items-center gap-2 pt-2">
               <a
                 href={getPhoneUrl()}
-                className="h-8 w-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-amber-400 transition-colors"
+                className="h-8 w-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-cyan-400 transition-colors"
                 title="Call Phone"
               >
                 <Phone className="h-4 w-4" />
@@ -68,11 +68,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLogin, onOpenQuote }) => {
           <div className="space-y-3 text-xs">
             <h4 className="font-bold text-white uppercase tracking-wider">Retail Shop Tech</h4>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#services-shop" className="hover:text-amber-400 transition-colors">Jewellery Showrooms</a></li>
-              <li><a href="#services-shop" className="hover:text-amber-400 transition-colors">Medical Pharmacies</a></li>
-              <li><a href="#services-shop" className="hover:text-amber-400 transition-colors">Salons & Spas</a></li>
-              <li><a href="#services-shop" className="hover:text-amber-400 transition-colors">General Stores & Kirana</a></li>
-              <li><a href="#services-shop" className="hover:text-amber-400 transition-colors">Barcode Billing POS</a></li>
+              <li><a href="#services-shop" className="hover:text-cyan-400 transition-colors">Jewellery Showrooms</a></li>
+              <li><a href="#services-shop" className="hover:text-cyan-400 transition-colors">Medical Pharmacies</a></li>
+              <li><a href="#services-shop" className="hover:text-cyan-400 transition-colors">Salons &amp; Spas</a></li>
+              <li><a href="#services-shop" className="hover:text-cyan-400 transition-colors">General Stores &amp; Kirana</a></li>
+              <li><a href="#services-shop" className="hover:text-cyan-400 transition-colors">Barcode Billing POS</a></li>
             </ul>
           </div>
 
@@ -80,32 +80,34 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLogin, onOpenQuote }) => {
           <div className="space-y-3 text-xs">
             <h4 className="font-bold text-white uppercase tracking-wider">College Projects</h4>
             <ul className="space-y-2 text-slate-400">
-              <li><a href="#services-student" className="hover:text-blue-400 transition-colors">Final Year Major Projects</a></li>
-              <li><a href="#services-student" className="hover:text-blue-400 transition-colors">B.Tech / BCA / MCA</a></li>
-              <li><a href="#services-student" className="hover:text-blue-400 transition-colors">Full-Stack MERN & Python</a></li>
-              <li><a href="#services-student" className="hover:text-blue-400 transition-colors">IEEE Reports & Synopsis</a></li>
-              <li><a href="#services-student" className="hover:text-blue-400 transition-colors">Viva Defense Preparation</a></li>
+              <li><a href="#services-student" className="hover:text-cyan-400 transition-colors">Final Year Major Projects</a></li>
+              <li><a href="#services-student" className="hover:text-cyan-400 transition-colors">B.Tech / BCA / MCA</a></li>
+              <li><a href="#services-student" className="hover:text-cyan-400 transition-colors">Full-Stack MERN &amp; Python</a></li>
+              <li><a href="#services-student" className="hover:text-cyan-400 transition-colors">Project Reports &amp; Synopsis</a></li>
+              <li><a href="#services-student" className="hover:text-cyan-400 transition-colors">Viva Defense Preparation</a></li>
             </ul>
           </div>
 
           {/* Direct Access */}
           <div className="space-y-3 text-xs">
-            <h4 className="font-bold text-white uppercase tracking-wider">Quick Actions</h4>
+            <h4 className="font-bold text-white uppercase tracking-wider">Portals &amp; Team</h4>
             <ul className="space-y-2 text-slate-400">
               <li>
-                <button onClick={onOpenLogin} className="hover:text-amber-400 transition-colors text-left">
+                <button onClick={onOpenUserLogin} className="hover:text-cyan-400 transition-colors text-left">
                   Client &amp; Student Portal Login
                 </button>
               </li>
               <li>
-                <button onClick={onOpenQuote} className="hover:text-amber-400 transition-colors text-left">
-                  Instant Cost Calculator
+                <button onClick={onOpenAdminLogin} className="hover:text-cyan-400 transition-colors text-left flex items-center gap-1 text-cyan-300">
+                  <Shield className="h-3 w-3" />
+                  <span>Founders Admin Desk (Login Database)</span>
                 </button>
               </li>
-              <li><a href="#team" className="hover:text-amber-400 transition-colors">Meet the 4 Equal CEOs</a></li>
-              <li><a href="#contact" className="hover:text-amber-400 transition-colors">Contact Information</a></li>
+              <li><a href="#solutions-carousel" className="hover:text-cyan-400 transition-colors">3D Sliding Showcase</a></li>
+              <li><a href="#team" className="hover:text-cyan-400 transition-colors">Meet the Co-Founders</a></li>
+              <li><a href="#contact" className="hover:text-cyan-400 transition-colors">Contact Information</a></li>
               <li className="pt-2">
-                <span className="font-mono text-amber-400">{contactInfo.phone}</span>
+                <span className="font-mono text-cyan-400">{contactInfo.phone}</span>
               </li>
             </ul>
           </div>
@@ -114,7 +116,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLogin, onOpenQuote }) => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © {new Date().getFullYear()} A3T Solutions. All rights reserved. Aryan Sharma, Asad Qureshi, Ahmed Shaikh &amp; Taquee Shaikh.
+            © {new Date().getFullYear()} A3T Solutions. All rights reserved. Co-Founders: Aryan Sharma, Asad Qureshi, Ahmed Shaikh &amp; Taquee Shaikh.
           </div>
 
           <div className="flex items-center gap-4">

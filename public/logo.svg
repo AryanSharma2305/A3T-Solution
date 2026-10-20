@@ -1,55 +1,125 @@
-<svg width="200" height="180" viewBox="0 0 200 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 300" width="100%" height="100%" fill="none">
   <defs>
-    <linearGradient id="goldBevel1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFF3B0" />
-      <stop offset="30%" stop-color="#E5B242" />
-      <stop offset="65%" stop-color="#BA8621" />
-      <stop offset="100%" stop-color="#8A5A0A" />
+    <!-- Cyan Neon Aura Filter -->
+    <filter id="a3tGlowFilter" x="-30%" y="-30%" width="160%" height="160%" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Main 3D Ribbon Cyan-to-Cobalt Gradient -->
+    <linearGradient id="a3tMainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="25%" stop-color="#00C8FF" />
+      <stop offset="60%" stop-color="#0066FF" />
+      <stop offset="100%" stop-color="#0038D1" />
     </linearGradient>
-    <linearGradient id="goldBevel2" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFE082" />
-      <stop offset="45%" stop-color="#D4A017" />
-      <stop offset="85%" stop-color="#996515" />
-      <stop offset="100%" stop-color="#5E3802" />
+
+    <!-- Right Tubular Leg Gradient -->
+    <linearGradient id="a3tRightLegGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="30%" stop-color="#0099FF" />
+      <stop offset="70%" stop-color="#0055EE" />
+      <stop offset="100%" stop-color="#0022AA" />
     </linearGradient>
-    <linearGradient id="navyFacet1" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#1E3354" />
-      <stop offset="50%" stop-color="#102038" />
-      <stop offset="100%" stop-color="#08101E" />
+
+    <!-- Inner Ribbon Fold Shadow Gradient -->
+    <linearGradient id="a3tFoldShadow" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#002288" />
+      <stop offset="50%" stop-color="#0044CC" />
+      <stop offset="100%" stop-color="#0099FF" />
     </linearGradient>
-    <linearGradient id="navyFacet2" x1="100%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#25426C" />
-      <stop offset="60%" stop-color="#142642" />
-      <stop offset="100%" stop-color="#0B1526" />
+
+    <!-- Pixel Blocks Glow Gradient -->
+    <linearGradient id="a3tPixelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#0077FF" />
     </linearGradient>
-    <linearGradient id="tGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#BA8621" />
-      <stop offset="35%" stop-color="#FFE898" />
-      <stop offset="70%" stop-color="#E5B242" />
-      <stop offset="100%" stop-color="#8A5A0A" />
+
+    <!-- Specular Highlight Curve -->
+    <linearGradient id="a3tGlossCurve" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#38BDF8" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#0077FF" stop-opacity="0" />
     </linearGradient>
   </defs>
-  <g>
-    <!-- Top Peak Triangle -->
-    <polygon points="100,10 134,70 66,70" fill="url(#goldBevel1)" stroke="url(#goldBevel2)" stroke-width="3.5" />
-    <polygon points="100,24 125,66 75,66" fill="url(#navyFacet1)" />
-    <polygon points="100,38 114,60 86,60" fill="url(#goldBevel2)" />
-    <polygon points="100,43 110,58 90,58" fill="url(#navyFacet2)" />
-    <!-- Left Wing -->
-    <polygon points="65,48 100,106 14,106" fill="url(#goldBevel1)" stroke="url(#goldBevel2)" stroke-width="3.5" />
-    <polygon points="65,60 90,102 32,102" fill="url(#navyFacet1)" />
-    <!-- Right Wing -->
-    <polygon points="135,48 186,106 100,106" fill="url(#goldBevel2)" stroke="url(#goldBevel1)" stroke-width="3.5" />
-    <polygon points="135,60 168,102 110,102" fill="url(#navyFacet2)" />
-    <!-- Central T -->
-    <polygon points="58,90 142,90 138,104 62,104" fill="url(#tGoldGrad)" stroke="url(#goldBevel1)" stroke-width="1.5" />
-    <polygon points="63,92 137,92 135,102 65,102" fill="url(#navyFacet2)" />
-    <polygon points="90,102 110,102 110,140 90,140" fill="url(#tGoldGrad)" stroke="url(#goldBevel2)" stroke-width="1.5" />
-    <polygon points="93,103 107,103 107,138 93,138" fill="url(#navyFacet1)" />
-    <!-- Base -->
-    <polygon points="28,112 85,112 85,126 40,126" fill="url(#goldBevel2)" />
-    <polygon points="33,114 83,114 83,124 44,124" fill="url(#navyFacet1)" />
-    <polygon points="115,112 172,112 160,126 115,126" fill="url(#goldBevel1)" />
-    <polygon points="117,114 167,114 156,124 117,124" fill="url(#navyFacet2)" />
+
+  <!-- Ambient Glow Backdrop -->
+  <circle cx="160" cy="140" r="100" fill="#00B4FF" opacity="0.12" filter="url(#a3tGlowFilter)" />
+
+  <!-- === The Official A3T 3D Ribbon 'A' Mark === -->
+  <g transform="translate(10, 8)">
+    <!-- 1. Floating Pixel Cubes on the Far Left -->
+    <!-- Top Cube -->
+    <rect x="36" y="96" width="22" height="22" rx="5" fill="url(#a3tPixelGrad)" filter="url(#a3tGlowFilter)" />
+    <rect x="38" y="98" width="10" height="4" rx="2" fill="#FFFFFF" opacity="0.75" />
+
+    <!-- Bottom-Left Cube -->
+    <rect x="14" y="162" width="24" height="24" rx="5" fill="url(#a3tPixelGrad)" filter="url(#a3tGlowFilter)" />
+    <rect x="16" y="164" width="11" height="4" rx="2" fill="#FFFFFF" opacity="0.7" />
+
+    <!-- Bottom-Right Cube -->
+    <rect x="44" y="194" width="23" height="23" rx="5" fill="url(#a3tPixelGrad)" filter="url(#a3tGlowFilter)" />
+    <rect x="46" y="196" width="10" height="4" rx="2" fill="#FFFFFF" opacity="0.7" />
+
+    <!-- 2. Protruding Horizontal Cyber Bars / Equalizer Fingers -->
+    <!-- Upper Bar extending from the left stem -->
+    <path 
+      d="M 62 124 L 115 124 C 122 124, 126 128, 126 135 C 126 142, 122 146, 115 146 L 62 146 Z" 
+      fill="url(#a3tPixelGrad)" 
+      filter="url(#a3tGlowFilter)" 
+    />
+    <rect x="66" y="127" width="36" height="3" rx="1.5" fill="#FFFFFF" opacity="0.75" />
+
+    <!-- Lower Bar extending from the left stem -->
+    <path 
+      d="M 62 154 L 102 154 C 108 154, 112 158, 112 165 C 112 172, 108 176, 102 176 L 62 176 Z" 
+      fill="url(#a3tPixelGrad)" 
+      filter="url(#a3tGlowFilter)" 
+    />
+    <rect x="66" y="157" width="24" height="3" rx="1.5" fill="#FFFFFF" opacity="0.75" />
+
+    <!-- 3. Left Stem Base (Slanted Solid Bevel) -->
+    <path 
+      d="M 64 246 L 138 246 C 146 246, 150 242, 154 234 L 188 160 C 192 152, 188 144, 178 144 L 122 144 C 114 144, 108 150, 104 158 L 60 236 C 56 242, 58 246, 64 246 Z" 
+      fill="url(#a3tFoldShadow)" 
+    />
+
+    <!-- 4. Inner Ribbon Fold / Crossbar Loop -->
+    <path 
+      d="M 122 144 C 134 144, 146 138, 152 128 L 176 84 C 182 74, 192 68, 204 68 C 216 68, 224 76, 222 88 L 198 148 C 194 158, 186 166, 176 166 L 130 166 Z" 
+      fill="url(#a3tFoldShadow)" 
+    />
+
+    <!-- 5. Main 3D Continuous Arch & Right Tubular Pillar -->
+    <!-- Ambient Shadow Behind Pillar -->
+    <path 
+      d="M 170 34 C 196 14, 230 18, 246 44 C 256 60, 256 80, 250 102 L 202 214 C 196 228, 186 240, 170 246 C 154 252, 140 244, 136 230 C 132 216, 138 202, 146 186 L 186 96 C 192 82, 188 68, 178 58 C 170 50, 156 46, 144 48 Z" 
+      fill="#001855" 
+      opacity="0.45" 
+      transform="translate(6, 6)"
+    />
+
+    <!-- Main Front 3D Ribbon Body -->
+    <path 
+      d="M 166 32 C 194 12, 232 18, 248 44 C 258 60, 256 82, 250 104 L 200 216 C 194 230, 182 242, 166 248 C 150 254, 136 244, 132 230 C 128 214, 134 200, 144 182 L 184 94 C 190 80, 186 66, 176 56 C 166 48, 152 44, 140 48 Z" 
+      fill="url(#a3tMainGradient)" 
+      filter="url(#a3tGlowFilter)"
+    />
+
+    <!-- Glossy Highlight Along Outer Curved Shoulder -->
+    <path 
+      d="M 172 36 C 196 18, 228 24, 242 46 C 248 56, 248 70, 244 88 L 198 190" 
+      stroke="url(#a3tGlossCurve)" 
+      stroke-width="4.5" 
+      stroke-linecap="round" 
+      fill="none" 
+    />
+
+    <!-- Rounded Cylindrical Bottom Foot of Right Pillar -->
+    <ellipse cx="152" cy="236" rx="15" ry="9" fill="#00F5FF" opacity="0.85" />
+    <circle cx="152" cy="236" r="4.5" fill="#FFFFFF" opacity="0.95" />
   </g>
 </svg>

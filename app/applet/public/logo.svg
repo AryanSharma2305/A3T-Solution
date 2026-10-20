@@ -1,0 +1,39 @@
+<svg width="200" height="160" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cyanRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#70F3FF" />
+      <stop offset="35%" stop-color="#00D2FF" />
+      <stop offset="70%" stop-color="#0072FF" />
+      <stop offset="100%" stop-color="#0048DB" />
+    </linearGradient>
+    <linearGradient id="cyanRibbonBack" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="50%" stop-color="#0080FF" />
+      <stop offset="100%" stop-color="#0035A8" />
+    </linearGradient>
+    <linearGradient id="pixelGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00F7FF" />
+      <stop offset="100%" stop-color="#0088FF" />
+    </linearGradient>
+    <linearGradient id="highlightGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#00F0FF" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#0066FF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="130" rx="20" fill="#030712" />
+  <g fill="url(#pixelGlow)">
+    <rect x="5" y="52" width="14" height="14" rx="2" opacity="0.6" />
+    <rect x="25" y="50" width="16" height="16" rx="2.5" opacity="0.85" />
+    <rect x="47" y="47" width="18" height="18" rx="3" opacity="0.95" />
+    <rect x="18" y="72" width="13" height="13" rx="2" opacity="0.7" />
+    <rect x="36" y="70" width="16" height="16" rx="2.5" opacity="0.9" />
+    <rect x="58" y="68" width="17" height="17" rx="3" fill="#FFFFFF" opacity="0.9" />
+    <rect x="28" y="92" width="14" height="14" rx="2" opacity="0.75" />
+    <rect x="47" y="90" width="16" height="16" rx="2.5" opacity="0.9" />
+  </g>
+  <path d="M 68 115 L 94 22 C 96 16 102 12 108 12 C 114 12 120 16 123 22 L 148 95 C 152 106 144 116 132 116 C 124 116 118 111 115 104 L 108 82 L 86 82 L 80 106 C 78 112 73 116 68 115 Z" fill="url(#cyanRibbon)" />
+  <path d="M 104 12 C 114 12 122 17 126 26 L 152 98 C 155 106 149 116 138 116 C 130 116 124 111 121 103 L 102 46 C 99 37 92 31 83 31 L 70 31 L 88 16 C 93 13 98 12 104 12 Z" fill="url(#cyanRibbonBack)" />
+  <path d="M 98 15 C 104 13 112 15 116 20 C 120 25 120 32 118 36 L 110 54 C 109 46 106 38 100 32 C 94 26 86 21 78 19 L 98 15 Z" fill="url(#highlightGlow)" />
+  <circle cx="106" cy="18" r="3.5" fill="#FFFFFF" />
+</svg>

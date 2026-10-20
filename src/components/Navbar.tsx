@@ -1,30 +1,33 @@
 import React, { useState } from 'react';
-import { Phone, LogIn, Menu, X, Settings2, UserCheck } from 'lucide-react';
+import { Phone, LogIn, Menu, X, Settings2, UserCheck, Shield } from 'lucide-react';
 import { A3TLogo } from './A3TLogo';
 import { useContact } from '../context/ContactContext';
 
 interface NavbarProps {
-  onOpenLogin: () => void;
+  onOpenUserLogin: () => void;
+  onOpenAdminLogin: () => void;
   activeSection: string;
   setActiveSection: (sec: string) => void;
-  onOpenQuote: () => void;
+  onConsultClick: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  onOpenLogin,
+  onOpenUserLogin,
+  onOpenAdminLogin,
   activeSection,
   setActiveSection,
-  onOpenQuote,
+  onConsultClick,
 }) => {
-  const { contactInfo, getPhoneUrl, setIsEditModalOpen, activeCustomer } = useContact();
+  const { contactInfo, getPhoneUrl, activeCustomer, isAdminLoggedIn } = useContact();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { id: 'services-shop', label: 'Shop Solutions' },
+    { id: 'solutions-carousel', label: '3D Solutions' },
+    { id: 'services-shop', label: 'Shop Systems' },
     { id: 'services-student', label: 'College Projects' },
-    { id: 'estimator', label: 'Cost Calculator' },
-    { id: 'team', label: 'Our 4 Founders' },
-    { id: 'contact', label: 'Contact Us' },
+    { id: 'video-showcase', label: 'Video Showcase' },
+    { id: 'team', label: 'Co-Founders' },
+    { id: 'contact', label: 'Contact' },
   ];
 
   const handleNavClick = (id: string) => {
@@ -39,7 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-xl">
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Zone 1: Single element brand wordmark */}
+        {/* Zone 1: Single element brand wordmark with new 3D logo */}
         <a
           href="#"
           onClick={(e) => {
@@ -57,67 +60,71 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               key={link.id}
               onClick={() => handleNavClick(link.id)}
-              className={`text-sm font-medium transition-colors hover:text-amber-300 relative py-1 ${
-                activeSection === link.id ? 'text-amber-400 font-semibold' : 'text-slate-300'
+              className={`text-sm font-medium transition-colors hover:text-cyan-300 relative py-1 ${
+                activeSection === link.id ? 'text-cyan-400 font-semibold' : 'text-slate-300'
               }`}
             >
               {link.label}
               {activeSection === link.id && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-400 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-400 rounded-full" />
               )}
             </button>
           ))}
         </nav>
 
-        {/* Zone 3: 1-2 primary actions */}
-        <div className="flex items-center gap-3">
-          {/* Quick contact edit trigger button for owners */}
-          <button
-            onClick={() => setIsEditModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/80 px-2.5 py-1.5 text-xs text-slate-400 hover:text-amber-300 hover:border-slate-700 transition-colors"
-            title="Configure Contact Numbers & Handles"
-          >
-            <Settings2 className="h-3.5 w-3.5" />
-            <span className="text-[11px]">Edit Numbers</span>
-          </button>
-
+        {/* Zone 3: Actions */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {/* Direct Phone Call */}
           <a
             href={getPhoneUrl()}
-            className="hidden md:inline-flex items-center gap-2 text-xs font-semibold text-slate-200 hover:text-amber-400 transition-colors px-2 py-1"
+            className="hidden md:inline-flex items-center gap-2 text-xs font-semibold text-slate-200 hover:text-cyan-400 transition-colors px-2 py-1"
           >
-            <Phone className="h-3.5 w-3.5 text-amber-400" />
+            <Phone className="h-3.5 w-3.5 text-cyan-400" />
             <span className="font-mono tabular-nums">{contactInfo.phone}</span>
           </a>
 
-          {/* Login / Client & Student Portal Button */}
+          {/* Admin Login Button */}
           <button
-            onClick={onOpenLogin}
+            onClick={onOpenAdminLogin}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
+              isAdminLoggedIn
+                ? 'border-cyan-500/60 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30'
+                : 'border-slate-800 bg-slate-900 text-slate-300 hover:text-cyan-400 hover:border-slate-700'
+            }`}
+            title="Founders Admin Portal (Login Database & Official Numbers)"
+          >
+            <Shield className="h-3.5 w-3.5 text-cyan-400" />
+            <span className="hidden sm:inline">{isAdminLoggedIn ? 'Admin Active' : 'Admin Login'}</span>
+          </button>
+
+          {/* User / Client Login Button */}
+          <button
+            onClick={onOpenUserLogin}
             className={`flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all whitespace-nowrap ${
               activeCustomer
                 ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25'
-                : 'border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/50'
+                : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-500/60'
             }`}
           >
             {activeCustomer ? (
               <>
                 <UserCheck className="h-3.5 w-3.5 text-emerald-400" />
-                <span className="max-w-[120px] truncate">{activeCustomer.name.split(' ')[0]} (Portal)</span>
+                <span className="max-w-[110px] truncate">{activeCustomer.name.split(' ')[0]}</span>
               </>
             ) : (
               <>
                 <LogIn className="h-3.5 w-3.5" />
-                <span>Portal / Login</span>
+                <span>User Login</span>
               </>
             )}
           </button>
 
-          {/* Request Quote Button */}
+          {/* Consult Team CTA */}
           <button
-            onClick={onOpenQuote}
-            className="hidden sm:inline-flex items-center rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2 text-xs font-bold text-slate-950 shadow-md shadow-amber-500/10 hover:from-amber-400 hover:to-amber-500 transition-all whitespace-nowrap"
+            onClick={onConsultClick}
+            className="hidden sm:inline-flex items-center rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 px-4 py-2 text-xs font-bold text-slate-950 shadow-md shadow-cyan-500/15 hover:from-cyan-300 hover:to-blue-500 transition-all whitespace-nowrap"
           >
-            Get Quote
+            Consult Team
           </button>
 
           {/* Mobile hamburger button */}
@@ -133,13 +140,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-6 space-y-3 animate-fade-in">
+        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-6 space-y-3 animate-fade-in text-left">
           <div className="flex flex-col space-y-2">
             {navLinks.map((link) => (
               <button
                 key={link.id}
                 onClick={() => handleNavClick(link.id)}
-                className="text-left py-2 px-3 text-sm font-medium rounded-lg text-slate-300 hover:bg-slate-900 hover:text-amber-400 transition-colors"
+                className="text-left py-2 px-3 text-sm font-medium rounded-lg text-slate-300 hover:bg-slate-900 hover:text-cyan-400 transition-colors"
               >
                 {link.label}
               </button>
@@ -149,31 +156,44 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="pt-3 border-t border-slate-900 flex flex-col gap-2.5">
             <a
               href={getPhoneUrl()}
-              className="flex items-center gap-2 text-xs font-semibold text-amber-400 p-2 rounded-lg bg-slate-900"
+              className="flex items-center gap-2 text-xs font-semibold text-cyan-400 p-2 rounded-lg bg-slate-900"
             >
               <Phone className="h-4 w-4" />
               <span>Call Us: {contactInfo.phone}</span>
             </a>
 
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsEditModalOpen(true);
-              }}
-              className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 py-2 text-xs text-slate-300"
-            >
-              <Settings2 className="h-3.5 w-3.5 text-amber-400" />
-              <span>Configure Phone / Social Handles</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenUserLogin();
+                }}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 py-2.5 text-xs font-semibold text-cyan-300"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>User Login</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdminLogin();
+                }}
+                className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 py-2.5 text-xs font-semibold text-slate-200"
+              >
+                <Shield className="h-3.5 w-3.5 text-cyan-400" />
+                <span>Admin Login</span>
+              </button>
+            </div>
 
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                onOpenQuote();
+                onConsultClick();
               }}
-              className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 shadow"
+              className="w-full rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 py-2.5 text-xs font-bold text-slate-950 shadow"
             >
-              Request Free Consultation
+              Consult Engineering Team
             </button>
           </div>
         </div>
